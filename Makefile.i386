@@ -16,7 +16,7 @@
 #
 
 CC       = gcc 
-CFLAGS   = -g -O2 -fomit-frame-pointer -D_GNU_SOURCE -D_FILE_OFFSET_BITS=64   -DBUILD_MAIN  -DUSE_INTEL_CPUID
+CFLAGS   = -g -O2 -fomit-frame-pointer -D_GNU_SOURCE -D_FILE_OFFSET_BITS=64   -DBUILD_MAIN  -DUSE_INTEL_CPUID 
 LDFLAGS  = -lncurses
 INCLUDEFLAGS = 
 

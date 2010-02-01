@@ -1,0 +1,6 @@
+#make clean
+#rm Makefile
+#qmake-qt4 -project
+#qmake-qt4
+make
+./GUI
