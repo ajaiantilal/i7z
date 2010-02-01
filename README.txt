@@ -1,3 +1,8 @@
+v0.2
+-added a gui version that uses qt4. makefile in GUI subdirectory
+-now C0+C1+C3+C6 = 100% 
+
+
 v0.1
 
 simple i7 detection utility for overclockers and clockers :)
