@@ -33,8 +33,6 @@
 #include <sys/time.h>
 #include <time.h>
 
-//#include "version.h"
-
 //#define ULLONG_MAX 18446744073709551615
 
 #ifndef x64_BIT

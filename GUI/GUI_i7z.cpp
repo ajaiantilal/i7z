@@ -1,3 +1,10 @@
+/* ----------------------------------------------------------------------- *
+ *   
+ *   Copyright 2009 Abhishek Jaiantilal
+ *
+ *   Under GPL v2
+ *
+ * ----------------------------------------------------------------------- */
 #include <QApplication>
 #include <QPushButton>
 #include <QProgressBar>

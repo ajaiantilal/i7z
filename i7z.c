@@ -1,22 +1,8 @@
-/* This  file is modified from source available at http://www.kernel.org/pub/linux/utils/cpu/msr-tools/
-/* for Model specific cpu registers
-/* Modified to take i7 into account by Abhishek Jaiantilal abhishek.jaiantilal@colorado.edu
-
-// Information about i7's MSR in 
-// http://download.intel.com/design/processor/applnots/320354.pdf
-// Appendix B of http://www.intel.com/Assets/PDF/manual/253669.pdf
-
-
-#ident "$Id: rdmsr.c,v 1.4 2004/07/20 15:54:59 hpa Exp $"
 /* ----------------------------------------------------------------------- *
  *   
- *   Copyright 2000 Transmeta Corporation - All Rights Reserved
+ *   Copyright 2009 Abhishek Jaiantilal
  *
- *   This program is free software; you can redistribute it and/or modify
- *   it under the terms of the GNU General Public License as published by
- *   the Free Software Foundation, Inc., 675 Mass Ave, Cambridge MA 02139,
- *   USA; either version 2 of the License, or (at your option) any later
- *   version; incorporated herein by reference.
+ *   Under GPL v2
  *
  * ----------------------------------------------------------------------- */
 
