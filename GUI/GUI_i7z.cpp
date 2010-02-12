@@ -175,11 +175,11 @@ MyThread::run ()
   float TRUE_CPU_FREQ;
   if (TURBO_MODE == 1)
     {
-      TRUE_CPU_FREQ = BLCK * (CPU_Multiplier + 1);
+      TRUE_CPU_FREQ = BLCK * ((double)CPU_Multiplier + 1);
     }
   else
     {
-      TRUE_CPU_FREQ = BLCK * (CPU_Multiplier);
+      TRUE_CPU_FREQ = BLCK * ((double)CPU_Multiplier);
     }
 
 

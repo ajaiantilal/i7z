@@ -131,7 +131,7 @@ main (int argc, char *argv[])
   double cpu_freq_cpuinfo = atof (tmp_str);
   fclose (tmp_file);
 
-  unsigned int numPhysicalCores, numLogicalCores;
+  int numPhysicalCores, numLogicalCores;
   //Parse the numPhysical and numLogical file to obtain the number of physical and logical core
   tmp_file = fopen ("/tmp/numPhysical.txt", "r");
   fgets (tmp_str, 30, tmp_file);
@@ -177,7 +177,7 @@ main (int argc, char *argv[])
 
   int numCPUs = numPhysicalCores;
 
-
+  //printf("%d  physical cores,  %d logical cores\n",numPhysicalCores, numLogicalCores);
   bool HT_ON;
   char HT_ON_str[30];
   if (numLogicalCores > numPhysicalCores)
@@ -191,21 +191,21 @@ main (int argc, char *argv[])
       HT_ON = false;
     }
 
-  float TRUE_CPU_FREQ;
+  double TRUE_CPU_FREQ;
   if (TURBO_MODE == 1)
     {				// && (CPU_Multiplier+1)==MAX_TURBO_2C){
       mvprintw (5, 0, "TURBO ENABLED on %d Cores, %s\n", numPhysicalCores,
 		HT_ON_str);
-      TRUE_CPU_FREQ = BLCK * (CPU_Multiplier + 1);
+      TRUE_CPU_FREQ = BLCK * ((double)CPU_Multiplier + 1);
     }
   else
     {
       mvprintw (5, 0, "TURBO DISABLED on %d Cores, %s\n", numPhysicalCores,
 		HT_ON_str);
-      TRUE_CPU_FREQ = BLCK * (CPU_Multiplier);
+      TRUE_CPU_FREQ = BLCK * ((double)CPU_Multiplier);
     }
 
-  mvprintw (6, 0, "True Frequency %0.2f MHz \n", TRUE_CPU_FREQ);
+  mvprintw (6, 0, "True Frequency %0.2f MHz (%0.2f x %0.2f) \n", TRUE_CPU_FREQ, BLCK, (double)CPU_Multiplier);
   mvprintw (7, 0, "  Max TURBO (if Enabled) with 1 Core  active %dx\n",
 	    MAX_TURBO_1C);
   mvprintw (8, 0, "  Max TURBO (if Enabled) with 2 Cores active %dx\n",
