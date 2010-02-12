@@ -1,5 +1,5 @@
 license: My code is GPLv2
-Current Version: v0.21 (2/Feb/2010)
+Current Version: v0.21-1 (13/Feb/2010)
 
 Compiling:
 64-bit linux:
@@ -22,7 +22,11 @@ The Makefile for that is in GUI/ subdirectory. Just install a couple of qt packa
 and you should be all set to run it. There is a README file that lists those packages
 
 Version and Bug History:
-v0.21 (2/Feb/2010)
+v0.21-2 (13/Feb/2010)
+    Minor Bug Fix, that happened as auto typecasting of double to float wasn't done
+    A variable (numLogical) was getting overwritten, so moved it to global
+
+v0.21 (12/Feb/2010)
 - Lots of edits. Namely changed the way the number of cores were always fixed at 4
 Now arbitrary number of cores can be detected, thus i3, i5, i7 and gulftown (6-cores)
 can be detected. Also added code to detect the whole nehalem family rather than just i7

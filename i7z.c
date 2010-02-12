@@ -8,6 +8,10 @@
 
 #include "i7z.h"
 
+//these variables if put inside the main get corrupted somehow :(
+int numPhysicalCores, numLogicalCores;
+double TRUE_CPU_FREQ;
+ 
 int
 main (int argc, char *argv[])
 {
@@ -89,7 +93,8 @@ main (int argc, char *argv[])
   int PLATFORM_INFO_MSR = 206;	//CE 15:8
   int PLATFORM_INFO_MSR_low = 8;
   int PLATFORM_INFO_MSR_high = 15;
-
+  
+   
   int IA32_MISC_ENABLE = 416;
   int TURBO_FLAG_low = 38;
   int TURBO_FLAG_high = 38;
@@ -131,8 +136,7 @@ main (int argc, char *argv[])
   double cpu_freq_cpuinfo = atof (tmp_str);
   fclose (tmp_file);
 
-  int numPhysicalCores, numLogicalCores;
-  //Parse the numPhysical and numLogical file to obtain the number of physical and logical core
+   //Parse the numPhysical and numLogical file to obtain the number of physical and logical core
   tmp_file = fopen ("/tmp/numPhysical.txt", "r");
   fgets (tmp_str, 30, tmp_file);
   numPhysicalCores = atoi (tmp_str);
@@ -142,6 +146,9 @@ main (int argc, char *argv[])
   fgets (tmp_str, 30, tmp_file);
   numLogicalCores = atoi (tmp_str);
   fclose (tmp_file);
+  
+  fflush(stdout);
+  sleep(1);
 
   //Setup stuff for ncurses
   initscr ();			/* start the curses mode */
@@ -177,21 +184,21 @@ main (int argc, char *argv[])
 
   int numCPUs = numPhysicalCores;
 
-  //printf("%d  physical cores,  %d logical cores\n",numPhysicalCores, numLogicalCores);
   bool HT_ON;
   char HT_ON_str[30];
+
   if (numLogicalCores > numPhysicalCores)
     {
-      strcpy (HT_ON_str, "Hyper Threading ON");
+      strncpy (HT_ON_str, "Hyper Threading ON\0",30);
       HT_ON = true;
     }
   else
     {
-      strcpy (HT_ON_str, "Hyper Threading OFF");
+      strncpy (HT_ON_str, "Hyper Threading OFF\0",30);
       HT_ON = false;
     }
-
-  double TRUE_CPU_FREQ;
+ 
+ 
   if (TURBO_MODE == 1)
     {				// && (CPU_Multiplier+1)==MAX_TURBO_2C){
       mvprintw (5, 0, "TURBO ENABLED on %d Cores, %s\n", numPhysicalCores,
@@ -204,6 +211,7 @@ main (int argc, char *argv[])
 		HT_ON_str);
       TRUE_CPU_FREQ = BLCK * ((double)CPU_Multiplier);
     }
+
 
   mvprintw (6, 0, "True Frequency %0.2f MHz (%0.2f x %0.2f) \n", TRUE_CPU_FREQ, BLCK, (double)CPU_Multiplier);
   mvprintw (7, 0, "  Max TURBO (if Enabled) with 1 Core  active %dx\n",
@@ -226,6 +234,7 @@ main (int argc, char *argv[])
   mvprintw (27, 0,
 	    " Total Logical Cores: [%d], Total Physical Cores: [%d] \n",
 	    numLogicalCores, numPhysicalCores);
+	    
   mvprintw (29, 0, "  Ctrl+C to exit");
 
 
