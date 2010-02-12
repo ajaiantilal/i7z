@@ -40,14 +40,38 @@ int main(int argc, char *argv[])
 	exit(1);
    }    
    #endif
+   
+   #ifndef x64_BIT
+	printf("I dont know the CPUID code to check on 32-bit OS, so i will assume that you have an Intel processor\n");
+	printf("Don't worry if i don't find a nehalem next, i'll quit anyways\n");
+   #endif
 
   get_familyinformation(&proc_info);	
   
+  //printf("%x %x",proc_info.extended_model,proc_info.family);
+
   //check if its nehalem or exit
-  // if (proc_info.family!=6 ||proc_info.processor_type!=0 || proc_info.extended_model!=1){
-//	 printf("Not a nehalem (i7)");
-	// exit(1);
-// }
+  //Info from page 641 of Intel Manual 3B
+  if (proc_info.family == 0x6){
+	if (proc_info.extended_model == 0x1){
+	 switch (proc_info.model){
+		case 0xA: 	 printf("Detected a nehalem (i7)\n"); break;
+		case 0xE: 	 
+		case 0xF: 	 printf("Detected a nehalem (i7/i5)\n"); break;	
+		default: printf("Unknown processor, not exactly based on Nehalem\n"); exit(1);
+	 }
+	}
+	if (proc_info.extended_model == 0x2){
+	 switch (proc_info.model){
+		case 0xE: 	 printf("Detected a nehalem (Xeon)\n"); break;
+		case 0x5: 	 
+		case 0xC: 	 printf("Detected a nehalem (32nm Westmere)\n"); break;																
+		default: printf("Unknown processor, not exactly based on Nehalem\n"); exit(1);
+     }
+	}
+  }else{
+		printf("Unknown processor, not exactly based on Nehalem\n"); exit(1);
+  }
   int width=1;
   int i,j;
   
@@ -62,7 +86,7 @@ int main(int argc, char *argv[])
 	
   int MSR_TURBO_RATIO_LIMIT=429;	
 	
-  int CPU_NUM;
+  int CPU_NUM=0;
   int CPU_Multiplier;	
   float BLCK;	
   char TURBO_MODE;
@@ -70,26 +94,42 @@ int main(int argc, char *argv[])
   printf("modprobbing for msr");
   system("modprobe msr"); sleep(1);
 
-  system("cat /proc/cpuinfo |grep MHz|sed 's/cpu\\sMHz\\s*:\\s//'|tail -n 1 > cpufreq.txt");
-  unsigned int num_Logical_OS, num_Logical_process, num_Processor_Core, num_Physical_Socket;
-  
-  #ifdef USE_INTEL_CPUID
-  get_CPUs_info(&num_Logical_OS, &num_Logical_process, &num_Processor_Core, &num_Physical_Socket);
-  #endif
-  
+  // 3B defines till Max 4 Core and the rest bit values from 32:63 were reserved.  
   int MAX_TURBO_1C=get_msr_value(CPU_NUM,MSR_TURBO_RATIO_LIMIT, 7,0);
   int MAX_TURBO_2C=get_msr_value(CPU_NUM,MSR_TURBO_RATIO_LIMIT, 15,8);
   int MAX_TURBO_3C=get_msr_value(CPU_NUM,MSR_TURBO_RATIO_LIMIT, 23,16);
   int MAX_TURBO_4C=get_msr_value(CPU_NUM,MSR_TURBO_RATIO_LIMIT, 31,24);
 
-  FILE *cpufreq_file;
-  cpufreq_file = fopen("cpufreq.txt","r");
-  char cpu_freq_str[30];
-  fgets(cpu_freq_str, 30, cpufreq_file);
-    
-  double cpu_freq_cpuinfo = atof(cpu_freq_str);
-  char * pat = "%*lld\n";
-  
+
+  //CPUINFO is wrong for i7 but correct for the number of physical and logical cores present
+  //If Hyperthreading is enabled then, multiple logical processors will share a common CORE ID
+  //http://www.redhat.com/magazine/022aug06/departments/tips_tricks/
+  system("cat /proc/cpuinfo |grep MHz|sed 's/cpu\\sMHz\\s*:\\s//'|tail -n 1 > /tmp/cpufreq.txt");
+  system("grep \"processor\" /proc/cpuinfo |uniq -|wc -l > /tmp/numPhysical.txt");
+  system("grep \"processor\" /proc/cpuinfo |uniq -|wc -l > /tmp/numLogical.txt");
+
+
+  //Open the parsed cpufreq file and obtain the cpufreq from /proc/cpuinfo
+  FILE *tmp_file;
+  tmp_file = fopen("/tmp/cpufreq.txt","r");
+  char tmp_str[30];
+  fgets(tmp_str, 30, tmp_file);
+  double cpu_freq_cpuinfo = atof(tmp_str);
+  fclose(tmp_file);
+
+  unsigned int numPhysicalCores, numLogicalCores;
+  //Parse the numPhysical and numLogical file to obtain the number of physical and logical core
+  tmp_file = fopen("/tmp/numPhysical.txt","r");
+  fgets(tmp_str, 30, tmp_file);
+  numPhysicalCores = atoi(tmp_str);
+  fclose(tmp_file);
+
+  tmp_file = fopen("/tmp/numLogical.txt","r");
+  fgets(tmp_str, 30, tmp_file);
+  numLogicalCores = atoi(tmp_str);
+  fclose(tmp_file);
+
+  //Setup stuff for ncurses
   initscr();				/* start the curses mode */
   start_color();
   getmaxyx(stdscr,row,col);		/* get the number of rows and columns */
@@ -98,62 +138,57 @@ int main(int argc, char *argv[])
   mvprintw(1,0,"cpuinfo might be wrong if cpufreq is enabled. To guess correctly try estimating via tsc\n");
   mvprintw(2,0,"Linux's inbuilt cpu_khz code emulated now\n\n");
   
-  //for(i=0;i<100;i++){
+
+  //estimate the freq using the estimate_MHz() code that is almost mhz accurate
   cpu_freq_cpuinfo = estimate_MHz();
   mvprintw(3,0,"True Frequency (without accounting Turbo) %f\n",cpu_freq_cpuinfo);
-  //}
+
+  //We just need one CPU (we use Core-0) to figure out the multiplier and the bus clock freq.
   CPU_NUM=0;
-   
   CPU_Multiplier=get_msr_value(CPU_NUM,PLATFORM_INFO_MSR, PLATFORM_INFO_MSR_high,PLATFORM_INFO_MSR_low);    
   BLCK = cpu_freq_cpuinfo/CPU_Multiplier;
   mvprintw(4,0,"CPU Multiplier %dx || Bus clock frequency (BCLK) %f MHz \n", CPU_Multiplier, BLCK);
   TURBO_MODE = turbo_status();//get_msr_value(CPU_NUM,IA32_MISC_ENABLE, TURBO_FLAG_high,TURBO_FLAG_low);
   
-  //ask linux how many cpus are enabled
-  int numCPUs = sysconf(_SC_NPROCESSORS_ONLN);
-  
+  //to find how many cpus are enabled, we could have used sysconf but that will just give the logical numbers
+  //if HT is enabled then the threads of the same core have the same C-state residency number so...
+  //Its imperative to figure out the number of physical and number of logical cores.
+  //sysconf(_SC_NPROCESSORS_ONLN);
+
+  int numCPUs = numPhysicalCores;
+
+
+  bool HT_ON;
+  char HT_ON_str[30];
+  if (numLogicalCores > numPhysicalCores){
+	strcpy(HT_ON_str,"Hyper Threading ON");
+	HT_ON = true;
+  }else{
+	strcpy(HT_ON_str,"Hyper Threading OFF");
+	HT_ON = false;
+  }
+
   float TRUE_CPU_FREQ;   
   if (TURBO_MODE==1){// && (CPU_Multiplier+1)==MAX_TURBO_2C){
-	mvprintw(5,0,"TURBO ENABLED on %d Cores\n",numCPUs);
+	mvprintw(5,0,"TURBO ENABLED on %d Cores, %s\n",numPhysicalCores, HT_ON_str);
 	TRUE_CPU_FREQ = BLCK*(CPU_Multiplier+1);
   }else{
-	mvprintw(5,0,"TURBO DISABLED on %d Cores\n",numCPUs);
+	mvprintw(5,0,"TURBO DISABLED on %d Cores, %s\n",numPhysicalCores, HT_ON_str);
 	TRUE_CPU_FREQ = BLCK*(CPU_Multiplier);
   }
 
-  mvprintw(6,0,"True Frequency %0.2f MHz\n",TRUE_CPU_FREQ);
-  
-  
-  if(numCPUs>4){
-	  mvprintw(7,0,"Max TURBO (if Enabled) with 1,2 Core  %dx\n",MAX_TURBO_1C);
-	  mvprintw(8,0,"Max TURBO (if Enabled) with 3,4 Cores %dx\n",MAX_TURBO_2C);
-	  mvprintw(9,0,"Max TURBO (if Enabled) with 5,6 Cores %dx\n",MAX_TURBO_3C);
-	  mvprintw(10,0,"Max TURBO (if Enabled) with 7,8 Cores %dx\n",MAX_TURBO_4C); 
-	  mvprintw(20,0,"C0 = Processor running without halting");
-	 mvprintw(21,0,"C1 = Processor running with halts (States >C0 are power saver)");
-	 mvprintw(22,0,"C3 = Cores running with PLL turned off and core cache turned off");
-	 mvprintw(23,0,"C6 = Everything in C3 + core state saved to last level cache");
-	 mvprintw(24,0,"  Above values in table are in percentage over the last 1 sec");
-	 #ifdef USE_INTEL_CPUID
-  	 mvprintw(25,0," Total cores seen [%d] (to OS)   [%d] (to process) \n",num_Logical_OS, num_Logical_process);
-	 mvprintw(26,0," Total physical cores [%d], Total Sockets [%d]\n", num_Processor_Core, num_Physical_Socket);
-	 #endif
-  }else{
-	  mvprintw(7,0," Max TURBO (if Enabled) with 1 Core  %dx\n",MAX_TURBO_1C);
-	  mvprintw(8,0," Max TURBO (if Enabled) with 2 Cores %dx\n",MAX_TURBO_2C);
-	  mvprintw(9,0," Max TURBO (if Enabled) with 3 Cores %dx\n",MAX_TURBO_3C);
-	  mvprintw(10,0," Max TURBO (if Enabled) with 4 Cores %dx\n",MAX_TURBO_4C); 
-	  mvprintw(20,0,"C0 = Processor running without halting");
-	  mvprintw(21,0,"C1 = Processor running with halts (States >C0 are power saver)");
-	  mvprintw(22,0,"C3 = Cores running with PLL turned off and core cache turned off");
-	  mvprintw(23,0,"C6 = Everything in C3 + core state saved to last level cache");
-	  mvprintw(24,0,"  Above values in table are in percentage over the last 1 sec");
-	  #ifdef USE_INTEL_CPUID
-  	  mvprintw(25,0," Total cores seen [%d] (to OS)   [%d] (to process) \n",num_Logical_OS, num_Logical_process);
-	  mvprintw(26,0," Total physical cores [%d], Total Sockets [%d]\n", num_Processor_Core, num_Physical_Socket);
-	  #endif
-   }
-   mvprintw(28,0,"  Ctrl+C to exit");
+  mvprintw(6,0,"True Frequency %0.2f MHz \n",TRUE_CPU_FREQ);
+  mvprintw(7,0,"  Max TURBO (if Enabled) with 1 Core  active %dx\n",MAX_TURBO_1C);
+  mvprintw(8,0,"  Max TURBO (if Enabled) with 2 Cores active %dx\n",MAX_TURBO_2C);
+  mvprintw(9,0,"  Max TURBO (if Enabled) with 3 Cores active %dx\n",MAX_TURBO_3C);
+  mvprintw(10,0,"  Max TURBO (if Enabled) with 4 Cores active %dx\n",MAX_TURBO_4C); 
+  mvprintw(22,0,"C0 = Processor running without halting");
+  mvprintw(23,0,"C1 = Processor running with halts (States >C0 are power saver)");
+  mvprintw(24,0,"C3 = Cores running with PLL turned off and core cache turned off");
+  mvprintw(25,0,"C6 = Everything in C3 + core state saved to last level cache");
+  mvprintw(26,0,"  Above values in table are in percentage over the last 1 sec");
+  mvprintw(27,0," Total Logical Cores: [%d], Total Physical Cores: [%d] \n",numLogicalCores, numPhysicalCores);
+  mvprintw(29,0,"  Ctrl+C to exit");
 	  
    
   int IA32_PERF_GLOBAL_CTRL=911;//3BF
@@ -200,29 +235,27 @@ int main(int argc, char *argv[])
     
   mvprintw(12,0,"Current Freqs\n");
   
-  for (i=0;i<numCPUs;i++){
-	 CPU_NUM=i;
-	IA32_PERF_GLOBAL_CTRL_Value=get_msr_value(CPU_NUM,IA32_PERF_GLOBAL_CTRL, 63,0);
-	set_msr_value(CPU_NUM, IA32_PERF_GLOBAL_CTRL,0x700000003);
-	IA32_FIXED_CTR_CTL_Value=get_msr_value(CPU_NUM,IA32_FIXED_CTR_CTL, 63,0);
-	set_msr_value(CPU_NUM, IA32_FIXED_CTR_CTL,819);	  
-	IA32_PERF_GLOBAL_CTRL_Value=get_msr_value(CPU_NUM,IA32_PERF_GLOBAL_CTRL, 63,0);
-	IA32_FIXED_CTR_CTL_Value=get_msr_value(CPU_NUM,IA32_FIXED_CTR_CTL, 63,0);
+  for (i=0; i < numCPUs ;i++){
+	    CPU_NUM=i;
+		IA32_PERF_GLOBAL_CTRL_Value=get_msr_value(CPU_NUM,IA32_PERF_GLOBAL_CTRL, 63,0);
+		set_msr_value(CPU_NUM, IA32_PERF_GLOBAL_CTRL,0x700000003);
+		IA32_FIXED_CTR_CTL_Value=get_msr_value(CPU_NUM,IA32_FIXED_CTR_CTL, 63,0);
+		set_msr_value(CPU_NUM, IA32_FIXED_CTR_CTL,819);	  
+		IA32_PERF_GLOBAL_CTRL_Value=get_msr_value(CPU_NUM,IA32_PERF_GLOBAL_CTRL, 63,0);
+		IA32_FIXED_CTR_CTL_Value=get_msr_value(CPU_NUM,IA32_FIXED_CTR_CTL, 63,0);
 
-	old_val_CORE[i] = get_msr_value(CPU_NUM,778, 63,0);
-	old_val_REF[i]    = get_msr_value(CPU_NUM,779, 63,0);
-	old_val_C3[i]	= get_msr_value(CPU_NUM,1020, 63,0); 
-	old_val_C6[i]	= get_msr_value(CPU_NUM,1021, 63,0); 
-	old_TSC[i] = rdtsc();
- }     
-	  
- 
- 
+		old_val_CORE[i] = get_msr_value(CPU_NUM,778, 63,0);
+		old_val_REF[i]    = get_msr_value(CPU_NUM,779, 63,0);
+		old_val_C3[i]	= get_msr_value(CPU_NUM,1020, 63,0); 
+		old_val_C6[i]	= get_msr_value(CPU_NUM,1021, 63,0); 
+		old_TSC[i] = rdtsc();
+  }     
+
   for (;;){
-	 nanosleep(&one_second_sleep,NULL);
-	  mvprintw(14,0,"\tProcessor  :Actual Freq (Mult.)\tC0\% Halt(C1) \%\t  C3 \%\t C6 \%\n");
+	  nanosleep(&one_second_sleep,NULL);
+	  mvprintw(14,0,"\tProcessor  :Actual Freq (Mult.)  C0%%   Halt(C1)%%  C3 %%   C6 %%\n");
 		
-	  for (i=0;i<numCPUs;i++){
+	  for (i=0;  i < numCPUs ;i++){
 		CPU_NUM=i;
 		new_val_CORE[i] = get_msr_value(CPU_NUM,778, 63,0);
 		new_val_REF[i]    = get_msr_value(CPU_NUM,779, 63,0);
@@ -303,22 +336,22 @@ int main(int argc, char *argv[])
 		//printf("\t %0.2Lg\t \n", C0_time, CPU_CLK_UNHALTED_REF, (new_TSC[i]-old_TSC[i]));
 	  }
 	  
-	 for(i=0;i<4;i++)
-		mvprintw(15+i,0,"\tProcessor %d:  %0.2f (%.2fx)\t%4.3Lg\t%4.3Lg\t%4.3Lg\t%4.3Lg\n",i,_FREQ[i], _MULT[i],C0_time[i]*100,C1_time[i]*100-(C3_time[i]*100+C6_time[i]*100),C3_time[i]*100,C6_time[i]*100); //C0_time[i]*100+C1_time[i]*100 around 100
+	 for(i=0;i<numCPUs;i++)
+		mvprintw(15+i,0,"\tProcessor %d:  %0.2f (%.2fx)\t%4.3Lg\t%4.3Lg\t%4.3Lg\t%4.3Lg\n",i+1,_FREQ[i], _MULT[i],C0_time[i]*100,C1_time[i]*100-(C3_time[i]*100+C6_time[i]*100),C3_time[i]*100,C6_time[i]*100); //C0_time[i]*100+C1_time[i]*100 around 100
 	  
 	TRUE_CPU_FREQ=0;
-	for(i=0;i<4;i++)
+	for(i=0;i<numCPUs;i++)
 	    if(_FREQ[i]>  TRUE_CPU_FREQ)
 		    TRUE_CPU_FREQ = _FREQ[i];
 	 mvprintw(13,0,"True Frequency %0.2f MHz (Intel specifies largest of below to be running Freq)\n",TRUE_CPU_FREQ);
 	   
 	refresh();
-	memcpy(old_val_CORE ,new_val_CORE,sizeof(unsigned long int)*4);
-	memcpy(old_val_REF ,new_val_REF,sizeof(unsigned long int)*4);
-	memcpy(old_val_C3 ,new_val_C3,sizeof(unsigned long int)*4);
-	memcpy(old_val_C6 ,new_val_C6,sizeof(unsigned long int)*4);
-	memcpy(tvstart,tvstop,sizeof(struct timeval)*4);
-	memcpy(old_TSC,new_TSC,sizeof(unsigned long long int)*4);
+	memcpy(old_val_CORE ,new_val_CORE,sizeof(unsigned long int)*numCPUs);
+	memcpy(old_val_REF ,new_val_REF,sizeof(unsigned long int)*numCPUs);
+	memcpy(old_val_C3 ,new_val_C3,sizeof(unsigned long int)*numCPUs);
+	memcpy(old_val_C6 ,new_val_C6,sizeof(unsigned long int)*numCPUs);
+	memcpy(tvstart,tvstop,sizeof(struct timeval)*numCPUs);
+	memcpy(old_TSC,new_TSC,sizeof(unsigned long long int)*numCPUs);
 	
   }
   exit(0);

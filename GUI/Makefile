@@ -43,8 +43,8 @@ OBJECTS_DIR   = ./
 
 ####### Files
 
-SOURCES       = GUI_i7z.cpp ../Intel_CPUID/get_cpuid_lix64.s ../Intel_CPUID/util_os.c ../Intel_CPUID/cpu_topo.c
-OBJECTS       = GUI_i7z.o get_cpuid_lix32.o util_os.o cpu_topo.o
+SOURCES       = GUI_i7z.cpp 
+OBJECTS       = GUI_i7z.o 
 DIST          = /usr/share/qt4/mkspecs/common/g++.conf \
 		/usr/share/qt4/mkspecs/common/unix.conf \
 		/usr/share/qt4/mkspecs/common/linux.conf \
@@ -91,12 +91,12 @@ first: all
 
 ####### Build rules
 
-all: intel makefile_target
+all:  makefile_target
 
-intel:
-	gcc -g -c ../Intel_CPUID/get_cpuid_lix64.s -o get_cpuid_lix32.o
-	gcc -g -c ../Intel_CPUID/util_os.c
-	gcc -g -c ../Intel_CPUID/cpu_topo.c
+#intel:
+#	gcc -g -c ../Intel_CPUID/get_cpuid_lix64.s -o get_cpuid_lix32.o
+#	gcc -g -c ../Intel_CPUID/util_os.c
+#	gcc -g -c ../Intel_CPUID/cpu_topo.c
 
 makefile_target: Makefile $(TARGET)
 	

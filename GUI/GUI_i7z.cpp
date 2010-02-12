@@ -23,14 +23,35 @@ class MyThread: public QThread
 		unsigned int numCPUs;
 		MyThread();					
 		void run();
-		double FREQ[4],MULT[4];
-		long double C0_TIME[4],C1_TIME[4],C3_TIME[4],C6_TIME[4];
+		double *FREQ,*MULT;
+		long double *C0_TIME,*C1_TIME,*C3_TIME,*C6_TIME;
 };
 
 MyThread::MyThread()
 {
-  //ask linux how many cpus are enabled
-  numCPUs = sysconf(_SC_NPROCESSORS_ONLN);
+  //figure out the number of physical cores from cpuinfo
+  system("grep \"processor\" /proc/cpuinfo |uniq -|wc -l > /tmp/numPhysical.txt");
+
+  //Open the parsed cpufreq file and obtain the cpufreq from /proc/cpuinfo
+  FILE *tmp_file;
+  char tmp_str[30];
+  unsigned int numPhysicalCores;
+  //Parse the numPhysical and numLogical file to obtain the number of physical cores
+  tmp_file = fopen("/tmp/numPhysical.txt","r");
+  fgets(tmp_str, 30, tmp_file);
+  numPhysicalCores = atoi(tmp_str);
+  fclose(tmp_file);
+	
+  numCPUs = numPhysicalCores;
+
+  //allocate space for the variables
+  FREQ = (double*)malloc(sizeof(double)*numCPUs);
+  MULT = (double*)malloc(sizeof(double)*numCPUs);
+  C0_TIME = (long double*)malloc(sizeof(long double)*numCPUs);
+  C1_TIME = (long double*)malloc(sizeof(long double)*numCPUs);
+  C3_TIME = (long double*)malloc(sizeof(long double)*numCPUs);
+  C6_TIME = (long double*)malloc(sizeof(long double)*numCPUs);
+
   int i;
   for(i=0 ;i<numCPUs; i++)
   {
@@ -64,44 +85,74 @@ void MyThread::run()
   char TURBO_MODE;
 
   printf("modprobbing for msr");
-  system("modprobe msr"); sleep(1);
-
-  system("cat /proc/cpuinfo |grep MHz|sed 's/cpu\\sMHz\\s*:\\s//'|tail -n 1 > cpufreq.txt");
-  unsigned int num_Logical_OS, num_Logical_process, num_Processor_Core, num_Physical_Socket;
-  
-  #ifdef USE_INTEL_CPUID
-  get_CPUs_info(&num_Logical_OS, &num_Logical_process, &num_Processor_Core, &num_Physical_Socket);
-  #endif
-  
+  system("modprobe msr"); sleep(1); 
+ 
+  // 3B defines till Max 4 Core and the rest bit values from 32:63 were reserved.  
   int MAX_TURBO_1C=get_msr_value(CPU_NUM,MSR_TURBO_RATIO_LIMIT, 7,0);
   int MAX_TURBO_2C=get_msr_value(CPU_NUM,MSR_TURBO_RATIO_LIMIT, 15,8);
   int MAX_TURBO_3C=get_msr_value(CPU_NUM,MSR_TURBO_RATIO_LIMIT, 23,16);
   int MAX_TURBO_4C=get_msr_value(CPU_NUM,MSR_TURBO_RATIO_LIMIT, 31,24);
+ 
 
-  FILE *cpufreq_file;
-  cpufreq_file = fopen("cpufreq.txt","r");
-  char cpu_freq_str[30];
-  fgets(cpu_freq_str, 30, cpufreq_file);
-    
-  double cpu_freq_cpuinfo = atof(cpu_freq_str);
-  char * pat = "%*lld\n";
+  //CPUINFO is wrong for i7 but correct for the number of physical and logical cores present
+  //If Hyperthreading is enabled then, multiple logical processors will share a common CORE ID
+  //http://www.redhat.com/magazine/022aug06/departments/tips_tricks/
+  system("cat /proc/cpuinfo |grep MHz|sed 's/cpu\\sMHz\\s*:\\s//'|tail -n 1 > /tmp/cpufreq.txt");
+  system("grep \"processor\" /proc/cpuinfo |uniq -|wc -l > /tmp/numPhysical.txt");
+  system("grep \"processor\" /proc/cpuinfo |uniq -|wc -l > /tmp/numLogical.txt");
+
+
+  //Open the parsed cpufreq file and obtain the cpufreq from /proc/cpuinfo
+  FILE *tmp_file;
+  tmp_file = fopen("/tmp/cpufreq.txt","r");
+  char tmp_str[30];
+  fgets(tmp_str, 30, tmp_file);
+  double cpu_freq_cpuinfo = atof(tmp_str);
+  fclose(tmp_file);
+
+  unsigned int numPhysicalCores, numLogicalCores;
+  //Parse the numPhysical and numLogical file to obtain the number of physical and logical core
+  tmp_file = fopen("/tmp/numPhysical.txt","r");
+  fgets(tmp_str, 30, tmp_file);
+  numPhysicalCores = atoi(tmp_str);
+  fclose(tmp_file);
+
+  tmp_file = fopen("/tmp/numLogical.txt","r");
+  fgets(tmp_str, 30, tmp_file);
+  numLogicalCores = atoi(tmp_str);
+  fclose(tmp_file);
   
-  cpu_freq_cpuinfo = estimate_MHz();
-  //mvprintw(3,0,"True Frequency (without accounting Turbo) %f\n",cpu_freq_cpuinfo);
 
+  //estimate the freq using the estimate_MHz() code that is almost mhz accurate
+  cpu_freq_cpuinfo = estimate_MHz();
+
+  //We just need one CPU (we use Core-0) to figure out the multiplier and the bus clock freq.
   CPU_NUM=0;
-   
   CPU_Multiplier=get_msr_value(CPU_NUM,PLATFORM_INFO_MSR, PLATFORM_INFO_MSR_high,PLATFORM_INFO_MSR_low);    
   BLCK = cpu_freq_cpuinfo/CPU_Multiplier;
- //  mvprintw(4,0,"CPU Multiplier %dx || Bus clock frequency (BCLK) %f MHz \n", CPU_Multiplier, BLCK);
   TURBO_MODE = turbo_status();//get_msr_value(CPU_NUM,IA32_MISC_ENABLE, TURBO_FLAG_high,TURBO_FLAG_low);
   
+  //to find how many cpus are enabled, we could have used sysconf but that will just give the logical numbers
+  //if HT is enabled then the threads of the same core have the same C-state residency number so...
+  //Its imperative to figure out the number of physical and number of logical cores.
+  //sysconf(_SC_NPROCESSORS_ONLN);
+
+  int numCPUs = numPhysicalCores;
+
+  bool HT_ON;
+  char HT_ON_str[30];
+  if (numLogicalCores > numPhysicalCores){
+	strcpy(HT_ON_str,"Hyper Threading ON");
+	HT_ON = true;
+  }else{
+	strcpy(HT_ON_str,"Hyper Threading OFF");
+	HT_ON = false;
+  }
+
   float TRUE_CPU_FREQ;   
-  if (TURBO_MODE==1){// && (CPU_Multiplier+1)==MAX_TURBO_2C){
-//	mvprintw(5,0,"TURBO ENABLED on %d Cores\n",numCPUs);
+  if (TURBO_MODE==1){
 	TRUE_CPU_FREQ = BLCK*(CPU_Multiplier+1);
   }else{
-//	mvprintw(5,0,"TURBO DISABLED on %d Cores\n",numCPUs);
 	TRUE_CPU_FREQ = BLCK*(CPU_Multiplier);
   }
 	  
@@ -253,25 +304,25 @@ void MyThread::run()
 	  }
 	  
 	TRUE_CPU_FREQ=0;
-	for(i=0;i<4;i++)
+	for(i=0;i<numCPUs;i++)
 	    if(_FREQ[i]>  TRUE_CPU_FREQ)
 		    TRUE_CPU_FREQ = _FREQ[i];
 	   
-	memcpy(old_val_CORE ,new_val_CORE,sizeof(unsigned long int)*4);
-	memcpy(old_val_REF ,new_val_REF,sizeof(unsigned long int)*4);
-	memcpy(old_val_C3 ,new_val_C3,sizeof(unsigned long int)*4);
-	memcpy(old_val_C6 ,new_val_C6,sizeof(unsigned long int)*4);
-	memcpy(tvstart,tvstop,sizeof(struct timeval)*4);
-	memcpy(old_TSC,new_TSC,sizeof(unsigned long long int)*4);
+	memcpy(old_val_CORE ,new_val_CORE,sizeof(unsigned long int)*numCPUs);
+	memcpy(old_val_REF ,new_val_REF,sizeof(unsigned long int)*numCPUs);
+	memcpy(old_val_C3 ,new_val_C3,sizeof(unsigned long int)*numCPUs);
+	memcpy(old_val_C6 ,new_val_C6,sizeof(unsigned long int)*numCPUs);
+	memcpy(tvstart,tvstop,sizeof(struct timeval)*numCPUs);
+	memcpy(old_TSC,new_TSC,sizeof(unsigned long long int)*numCPUs);
 	
-	memcpy(FREQ, _FREQ, sizeof(double)*4);
-	memcpy(MULT, _MULT, sizeof(double)*4);
-	memcpy(C0_TIME, C0_time, sizeof(long double)*4);
-	memcpy(C1_TIME, C1_time, sizeof(long double)*4);
-	memcpy(C3_TIME, C3_time, sizeof(long double)*4);
-	memcpy(C6_TIME, C6_time, sizeof(long double)*4);  
+	memcpy(FREQ, _FREQ, sizeof(double)*numCPUs);
+	memcpy(MULT, _MULT, sizeof(double)*numCPUs);
+	memcpy(C0_TIME, C0_time, sizeof(long double)*numCPUs);
+	memcpy(C1_TIME, C1_time, sizeof(long double)*numCPUs);
+	memcpy(C3_TIME, C3_time, sizeof(long double)*numCPUs);
+	memcpy(C6_TIME, C6_time, sizeof(long double)*numCPUs);  
 	global_in_i7z_main_thread = true;
-	}
+  }
 
 }
 
@@ -279,13 +330,14 @@ class MyWidget: public QWidget
 {
 	Q_OBJECT
 	public:
-		QProgressBar *C0_l[4], *C1_l[4], *C3_l[4], *C6_l[4];
+		QProgressBar *C0_l[6], *C1_l[6], *C3_l[6], *C6_l[6];
 		QLabel *C0, *C1, *C3, *C6;
-		QLabel *Freq_[4];
+		QLabel *Freq_[6];
 		QLabel *StatusMessage, * Curr_Freq;
-		QLabel *ProcNames[4];
+		QLabel *ProcNames[6];
 		MyWidget(QWidget *parent = 0);
 		MyThread *mythread;
+		unsigned int numCPUs;
 
 	private slots:
 		void UpdateWidget();
@@ -294,82 +346,102 @@ class MyWidget: public QWidget
 MyWidget::MyWidget(QWidget *parent)
 	: QWidget(parent)
 {
-	int i, j;
-	for (i=0;i<4;i++){
+
+  //figure out the number of physical cores from cpuinfo
+  system("grep \"processor\" /proc/cpuinfo |uniq -|wc -l > /tmp/numPhysical.txt");
+
+  //Open the parsed cpufreq file and obtain the cpufreq from /proc/cpuinfo
+  FILE *tmp_file;
+  tmp_file = fopen("/tmp/cpufreq.txt","r");
+  char tmp_str[30];
+  fgets(tmp_str, 30, tmp_file);
+  double cpu_freq_cpuinfo = atof(tmp_str);
+  fclose(tmp_file);
+
+  unsigned int numPhysicalCores, numLogicalCores;
+  //Parse the numPhysical and numLogical file to obtain the number of physical cores
+  tmp_file = fopen("/tmp/numPhysical.txt","r");
+  fgets(tmp_str, 30, tmp_file);
+  numPhysicalCores = atoi(tmp_str);
+  fclose(tmp_file);
+	
+  numCPUs = numPhysicalCores;
+
+  int i, j;
+  for (i=0; i < numCPUs;i++){
 		C0_l[i] = new QProgressBar; C0_l[i]->setMaximum(99);C0_l[i]->setMinimum(0);
 		C1_l[i] = new QProgressBar; C1_l[i]->setMaximum(99);C1_l[i]->setMinimum(0);
 		C3_l[i] = new QProgressBar; C3_l[i]->setMaximum(99);C3_l[i]->setMinimum(0);
 		C6_l[i] = new QProgressBar; C6_l[i]->setMaximum(99);C6_l[i]->setMinimum(0);
 		Freq_[i] = new QLabel(tr(""));
-	}
+  }
 
-	QGridLayout *layout1 = new QGridLayout;
+  QGridLayout *layout1 = new QGridLayout;
 	
 	
-	for(i=0; i<4; i++){
+  for(i=0; i < numCPUs; i++){
 		layout1-> addWidget(C0_l[i],i+1,1);
 		layout1-> addWidget(C1_l[i],i+1,2);
 		layout1-> addWidget(C3_l[i],i+1,3);
 		layout1-> addWidget(C6_l[i],i+1,4);
-	}
+  }
 
-	C0 = new QLabel(tr("C0")); C0->setAlignment( Qt::AlignCenter);
-	C1 = new QLabel(tr("C1")); C1->setAlignment( Qt::AlignCenter);
-	C3 = new QLabel(tr("C3")); C3->setAlignment( Qt::AlignCenter);
-	C6 = new QLabel(tr("C6")); C6->setAlignment( Qt::AlignCenter);
+  C0 = new QLabel(tr("C0")); C0->setAlignment( Qt::AlignCenter);
+  C1 = new QLabel(tr("C1")); C1->setAlignment( Qt::AlignCenter);
+  C3 = new QLabel(tr("C3")); C3->setAlignment( Qt::AlignCenter);
+  C6 = new QLabel(tr("C6")); C6->setAlignment( Qt::AlignCenter);
 
-	ProcNames[0] = new QLabel(tr("Processor-1"));
-	ProcNames[1] = new QLabel(tr("Processor-2"));
-	ProcNames[2] = new QLabel(tr("Processor-3"));
-	ProcNames[3] = new QLabel(tr("Processor-4"));
+  ProcNames[0] = new QLabel(tr("Processor-1")); 
+  ProcNames[1] = new QLabel(tr("Processor-2"));
+  ProcNames[2] = new QLabel(tr("Processor-3"));
+  ProcNames[3] = new QLabel(tr("Processor-4"));
+  ProcNames[4] = new QLabel(tr("Processor-5"));
+  ProcNames[5] = new QLabel(tr("Processor-6"));
+ 
+  StatusMessage = new QLabel(tr("Wait")); 
+  Curr_Freq = new QLabel(tr("Wait")); 
 
-	StatusMessage = new QLabel(tr("Wait")); 
-	Curr_Freq = new QLabel(tr("Wait")); 
+  for(i=0; i < numCPUs; i++){
+  	layout1->addWidget(ProcNames[i],i+1,0);
+  }
 
-	layout1->addWidget(ProcNames[0],1,0);
-	layout1->addWidget(ProcNames[1],2,0);
-	layout1->addWidget(ProcNames[2],3,0);
-	layout1->addWidget(ProcNames[3],4,0);
+  layout1->addWidget(C0,0,1);
+  layout1->addWidget(C1,0,2);
+  layout1->addWidget(C3,0,3);
+  layout1->addWidget(C6,0,4);
 
-	layout1->addWidget(C0,0,1);
-	layout1->addWidget(C1,0,2);
-	layout1->addWidget(C3,0,3);
-	layout1->addWidget(C6,0,4);
+  for(i=0; i < numCPUs; i++){
+	layout1->addWidget(Freq_[i],i+1,5);
+  }
 
-	layout1->addWidget(Freq_[0],1,5);
-	layout1->addWidget(Freq_[1],2,5);
-	layout1->addWidget(Freq_[2],3,5);
-	layout1->addWidget(Freq_[3],4,5);
+  layout1->addWidget(StatusMessage,numCPUs+1,4);
+  layout1->addWidget(Curr_Freq,numCPUs+1,5);
 
-	layout1->addWidget(StatusMessage,5,4);
-	layout1->addWidget(Curr_Freq,5,5);
+  QTimer *timer = new QTimer(this);
+  connect(timer, SIGNAL(timeout()), this, SLOT(UpdateWidget()));
+  timer->start(1000);
 
-	QTimer *timer = new QTimer(this);
-	connect(timer, SIGNAL(timeout()), this, SLOT(UpdateWidget()));
-	timer->start(1000);
+  mythread = new MyThread();
+  mythread->start();
 
-	mythread = new MyThread();
-	mythread->start();
-
-	setLayout(layout1);
+  setLayout(layout1);
 }
 
 void MyWidget::UpdateWidget(){
 	int i;
 	char val2set[100];
-	snprintf(val2set,100,"%0.2f Ghz",mythread->FREQ[0]); Freq_[0]->setText(val2set);
-	snprintf(val2set,100,"%0.2f Ghz",mythread->FREQ[1]); Freq_[1]->setText(val2set);
-	snprintf(val2set,100,"%0.2f Ghz",mythread->FREQ[2]); Freq_[2]->setText(val2set);
-	snprintf(val2set,100,"%0.2f Ghz",mythread->FREQ[3]); Freq_[3]->setText(val2set);
+	for(i=0;i < numCPUs;i++){
+		snprintf(val2set,100,"%0.2f Ghz",mythread->FREQ[i]); Freq_[i]->setText(val2set);
+	}
 	
-	for(i=0;i<4;i++){
+	for(i=0;i<numCPUs;i++){
 		C0_l[i]->setValue(mythread->C0_TIME[i]*100);
 		C1_l[i]->setValue(mythread->C1_TIME[i]*100);
 		C3_l[i]->setValue(mythread->C3_TIME[i]*100);
 		C6_l[i]->setValue(mythread->C6_TIME[i]*100);
 	}
 	float Max_Freq=0;
-	for (i=0;i<4;i++){
+	for (i=0;i<numCPUs;i++){
 		if(mythread->FREQ[i]>Max_Freq)
 			Max_Freq = mythread->FREQ[i];
 	}

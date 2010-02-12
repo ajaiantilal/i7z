@@ -16,18 +16,18 @@
 #
 
 CC       = gcc 
-CFLAGS   = -g -O2 -fomit-frame-pointer -D_GNU_SOURCE -D_FILE_OFFSET_BITS=64 -Dx64_BIT -DBUILD_MAIN -DUSE_INTEL_CPUID
+CFLAGS   = -g -O2 -fomit-frame-pointer -D_GNU_SOURCE -D_FILE_OFFSET_BITS=64 -Dx64_BIT -DBUILD_MAIN #-DUSE_INTEL_CPUID
 LDFLAGS  = -lncurses
 INCLUDEFLAGS = 
 
-INTEL_O = get_cpuid_lix64.o util_os.o cpu_topo.o
-INTEL_O = Intel_CPUID/get_cpuid_lix64.s Intel_CPUID/util_os.c Intel_CPUID/cpu_topo.c
+#INTEL_O = get_cpuid_lix64.o util_os.o cpu_topo.o
+#INTEL_O = Intel_CPUID/get_cpuid_lix64.s Intel_CPUID/util_os.c Intel_CPUID/cpu_topo.c
 
 BIN	= i7z
 
 sbindir = /usr/sbin
 
-all: clean intel $(BIN)
+all: clean $(BIN)
 
 clean:
 	rm -f *.o $(BIN)
@@ -38,10 +38,10 @@ distclean: clean
 install: all
 	install -m 755 $(BIN) $(sbindir)
 	
-intel:
-	gcc -g -c Intel_CPUID/get_cpuid_lix64.s -o get_cpuid_lix32.o
-	gcc -g -c Intel_CPUID/util_os.c
-	gcc -g -c Intel_CPUID/cpu_topo.c
+#intel:
+#	gcc -g -c Intel_CPUID/get_cpuid_lix64.s -o get_cpuid_lix32.o
+#	gcc -g -c Intel_CPUID/util_os.c
+#	gcc -g -c Intel_CPUID/cpu_topo.c
 	
 .o:
 	$(CC) $(LDFLAGS) -o $@ $(INTEL_O) $< 
