@@ -404,13 +404,7 @@ MyWidget::MyWidget (QWidget * parent):QWidget (parent)
   //Open the parsed cpufreq file and obtain the cpufreq from /proc/cpuinfo
   FILE *
     tmp_file;
-  tmp_file = fopen ("/tmp/cpufreq.txt", "r");
-  char
-    tmp_str[30];
-  fgets (tmp_str, 30, tmp_file);
-  double
-    cpu_freq_cpuinfo = atof (tmp_str);
-  fclose (tmp_file);
+  char tmp_str[30];
 
   unsigned int
     numPhysicalCores,
