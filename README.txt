@@ -1,4 +1,5 @@
 license: My code is GPLv2
+Current Version: v0.21 (2/Feb/2010)
 
 Compiling:
 64-bit linux:
@@ -15,6 +16,10 @@ Running:
   need ncurses library: usually something like libncurses on debian. 
 also needs support of MSR (model specific register) in kernel. Usually most kernels
 have it. Else run the MAKEDEV file. I do modprobing of msr within the C-program.
+
+I added in new code that shows a nice GUI.
+The Makefile for that is in GUI/ subdirectory. Just install a couple of qt packages
+and you should be all set to run it. There is a README file that lists those packages
 
 Version and Bug History:
 v0.21 (2/Feb/2010)

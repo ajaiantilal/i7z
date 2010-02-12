@@ -91,7 +91,7 @@ first: all
 
 ####### Build rules
 
-all:  makefile_target
+all:  clean makefile_target
 
 #intel:
 #	gcc -g -c ../Intel_CPUID/get_cpuid_lix64.s -o get_cpuid_lix32.o
