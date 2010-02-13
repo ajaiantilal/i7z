@@ -11,9 +11,9 @@
 CC            = gcc
 CXX           = g++
 DEFINES       = -DQT_NO_DEBUG -DQT_GUI_LIB -DQT_CORE_LIB -DQT_SHARED
-CFLAGS_64BIT   = -g -O2 -fomit-frame-pointer -D_GNU_SOURCE -D_FILE_OFFSET_BITS=64 -Dx64_BIT -DBUILD_MAIN 
-CFLAGS        = $(CFLAGS_64BIT) -pipe -O2 -Wall -W -D_REENTRANT $(DEFINES) 
-CXXFLAGS      = $(CFLAGS_64BIT) -pipe -O2 -Wall -W -D_REENTRANT $(DEFINES) 
+CFLAGS_64BIT   = -g -O1 -fomit-frame-pointer -D_GNU_SOURCE -D_FILE_OFFSET_BITS=64 -Dx64_BIT -DBUILD_MAIN 
+CFLAGS        = $(CFLAGS_64BIT) -pipe -O1 -Wall -W -D_REENTRANT $(DEFINES) 
+CXXFLAGS      = $(CFLAGS_64BIT) -pipe -O1 -Wall -W -D_REENTRANT $(DEFINES) 
 INCPATH       = -I/usr/share/qt4/mkspecs/linux-g++ -I. -I/usr/include/qt4/QtCore -I/usr/include/qt4/QtGui -I/usr/include/qt4 -I. -I. -I../ -I/usr/include/qwt
 LINK          = g++
 LFLAGS        = -Wl,-O1

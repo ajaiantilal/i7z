@@ -101,7 +101,7 @@ main (int argc, char *argv[])
 
   int MSR_TURBO_RATIO_LIMIT = 429;
 
-  int CPU_NUM = 0;
+  int CPU_NUM = 1;
   int CPU_Multiplier;
   float BLCK;
   char TURBO_MODE;
@@ -173,7 +173,7 @@ main (int argc, char *argv[])
 		   PLATFORM_INFO_MSR_low);
   BLCK = cpu_freq_cpuinfo / CPU_Multiplier;
   mvprintw (4, 0,
-	    "CPU Multiplier %dx || Bus clock frequency (BCLK) %f MHz \n",
+	    "CPU Multiplier %dx || Bus clock frequency (BCLK) %0.3f MHz \n",
 	    CPU_Multiplier, BLCK);
   TURBO_MODE = turbo_status ();	//get_msr_value(CPU_NUM,IA32_MISC_ENABLE, TURBO_FLAG_high,TURBO_FLAG_low);
 
@@ -184,36 +184,41 @@ main (int argc, char *argv[])
 
   int numCPUs = numPhysicalCores;
 
-  bool HT_ON;
+  int HT_ON;
   char HT_ON_str[30];
 
+  //printf("Multiplier %d \n", CPU_Multiplier);
   if (numLogicalCores > numPhysicalCores)
     {
-      strncpy (HT_ON_str, "Hyper Threading ON\0",30);
-      HT_ON = true;
-    }
+   //printf("Multiplier %d \n", CPU_Multiplier);
+     strncpy (HT_ON_str, "Hyper Threading ON\0",30);
+      HT_ON = 1;
+    //printf("Multiplier %d \n", CPU_Multiplier);
+  }
   else
     {
-      strncpy (HT_ON_str, "Hyper Threading OFF\0",30);
-      HT_ON = false;
-    }
+   //printf("Multiplier %d \n", CPU_Multiplier);
+     strncpy (HT_ON_str, "Hyper Threading OFF\0",30);
+      HT_ON = 0;
+   //printf("Multiplier %d \n", CPU_Multiplier);
+   }
  
- 
+  //printf("Multiplier %d \n", CPU_Multiplier);
+  
   if (TURBO_MODE == 1)
-    {				// && (CPU_Multiplier+1)==MAX_TURBO_2C){
+  {				// && (CPU_Multiplier+1)==MAX_TURBO_2C){
       mvprintw (5, 0, "TURBO ENABLED on %d Cores, %s\n", numPhysicalCores,
 		HT_ON_str);
       TRUE_CPU_FREQ = BLCK * ((double)CPU_Multiplier + 1);
-    }
-  else
-    {
+      mvprintw (6, 0, "True Frequency %0.2f MHz (%0.2f x [%d]) \n", TRUE_CPU_FREQ, BLCK, CPU_Multiplier+1);
+  }else{
       mvprintw (5, 0, "TURBO DISABLED on %d Cores, %s\n", numPhysicalCores,
 		HT_ON_str);
       TRUE_CPU_FREQ = BLCK * ((double)CPU_Multiplier);
-    }
+      mvprintw (6, 0, "True Frequency %0.2f MHz (%0.2f x [%d]) \n", TRUE_CPU_FREQ, BLCK, CPU_Multiplier);
+  }
 
 
-  mvprintw (6, 0, "True Frequency %0.2f MHz (%0.2f x %0.2f) \n", TRUE_CPU_FREQ, BLCK, (double)CPU_Multiplier);
   mvprintw (7, 0, "  Max TURBO (if Enabled) with 1 Core  active %dx\n",
 	    MAX_TURBO_1C);
   mvprintw (8, 0, "  Max TURBO (if Enabled) with 2 Cores active %dx\n",
@@ -282,7 +287,7 @@ main (int argc, char *argv[])
 
   long double C0_time[numCPUs], C1_time[numCPUs], C3_time[numCPUs],
     C6_time[numCPUs];
-  double _FREQ[numCPUs], _MULT[numCPUs];
+   double _FREQ[numCPUs], _MULT[numCPUs];
   refresh ();
 
   mvprintw (12, 0, "Current Freqs\n");

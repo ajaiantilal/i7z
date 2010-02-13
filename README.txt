@@ -22,9 +22,11 @@ The Makefile for that is in GUI/ subdirectory. Just install a couple of qt packa
 and you should be all set to run it. There is a README file that lists those packages
 
 Version and Bug History:
-v0.21-2 (13/Feb/2010)
+v0.21-3 (13/Feb/2010)
     Minor Bug Fix, that happened as auto typecasting of double to float wasn't done
     A variable (numLogical) was getting overwritten, so moved it to global
+    Seems that flags for optimization were screwing things up, so now no optimization
+    GUI still has -O1 optimization flags
 
 v0.21 (12/Feb/2010)
 - Lots of edits. Namely changed the way the number of cores were always fixed at 4
