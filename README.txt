@@ -27,6 +27,11 @@ v0.21-3 (13/Feb/2010)
     A variable (numLogical) was getting overwritten, so moved it to global
     Seems that flags for optimization were screwing things up, so now no optimization
     GUI still has -O1 optimization flags
+    
+    BTW why sudden increase from 0.2-1 to 0.21-3. There were 3 minor edits in between
+    And then for me 0.21 and 0.2 are just 0.01 apart rather then 19 minor aparts. 
+    I realised it too late and the svn was updated so many times that i'll keep it 
+    this way this time
 
 v0.21 (12/Feb/2010)
 - Lots of edits. Namely changed the way the number of cores were always fixed at 4
