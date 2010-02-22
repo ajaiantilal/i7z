@@ -11,12 +11,12 @@
 CC            = gcc
 CXX           = g++
 DEFINES       = -DQT_NO_DEBUG -DQT_GUI_LIB -DQT_CORE_LIB -DQT_SHARED
-CFLAGS_64BIT   = -g -O1 -fomit-frame-pointer -D_GNU_SOURCE -D_FILE_OFFSET_BITS=64 -Dx64_BIT -DBUILD_MAIN 
+CFLAGS_64BIT   = -g -O0 -fomit-frame-pointer -D_GNU_SOURCE -D_FILE_OFFSET_BITS=64 -Dx64_BIT -DBUILD_MAIN 
 CFLAGS        = $(CFLAGS_64BIT) -pipe -O1 -Wall -W -D_REENTRANT $(DEFINES) 
 CXXFLAGS      = $(CFLAGS_64BIT) -pipe -O1 -Wall -W -D_REENTRANT $(DEFINES) 
 INCPATH       = -I/usr/share/qt4/mkspecs/linux-g++ -I. -I/usr/include/qt4/QtCore -I/usr/include/qt4/QtGui -I/usr/include/qt4 -I. -I. -I../ -I/usr/include/qwt
 LINK          = g++
-LFLAGS        = -Wl,-O1
+LFLAGS        = -Wl,-O0
 LIBS          = $(SUBLIBS)  -L/usr/lib -lQtGui -lQtCore -lpthread
 AR            = ar cqs
 RANLIB        = 
@@ -36,6 +36,9 @@ DEL_DIR       = rmdir
 MOVE          = mv -f
 CHK_DIR_EXISTS= test -d
 MKDIR         = mkdir -p
+
+sbindir = /usr/sbin
+
 
 ####### Output directory
 
@@ -156,7 +159,7 @@ dist:
 
 
 clean:compiler_clean 
-	-$(DEL_FILE) $(OBJECTS)
+	-$(DEL_FILE) $(OBJECTS) $(TARGET)
 	-$(DEL_FILE) *~ core *.core
 
 
@@ -201,7 +204,8 @@ GUI_i7z.o: GUI_i7z.cpp GUI_i7z.moc
 
 ####### Install
 
-install:   FORCE
+install: all
+	install -m 755 $(TARGET) $(sbindir)
 
 uninstall:   FORCE
 

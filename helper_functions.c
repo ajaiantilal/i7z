@@ -19,9 +19,7 @@
  *   version; incorporated herein by reference.
  *
  * ----------------------------------------------------------------------- */
-
 #include <memory.h>
-#include <ncurses.h>
 #include <errno.h>
 #include <stdio.h>
 #include <fcntl.h>
@@ -32,42 +30,10 @@
 #include <sys/types.h>
 #include <sys/time.h>
 #include <time.h>
+#include "i7z.h"
 
 
 //#define ULLONG_MAX 18446744073709551615
-
-
-#ifndef x64_BIT
-//http://www.mcs.anl.gov/~kazutomo/rdtsc.html
-//code for 64 bit
-__inline__ unsigned long long int
-rdtsc ()
-{
-  unsigned long long int x;
-  __asm__ volatile (".byte 0x0f, 0x31":"=A" (x));
-  return x;
-}
-#endif
-
-#ifdef x64_BIT
-static __inline__ unsigned long long
-rdtsc (void)
-{
-  unsigned hi, lo;
-  __asm__ __volatile__ ("rdtsc":"=a" (lo), "=d" (hi));
-  return ((unsigned long long) lo) | (((unsigned long long) hi) << 32);
-}
-#endif
-
-struct family_info
-{
-  char stepping;
-  char model;
-  char family;
-  char processor_type;
-  char extended_model;
-  int extended_family;
-};
 
 void
 print_family_info (struct family_info *proc_info)
@@ -183,17 +149,17 @@ estimate_MHz ()
 
   unsigned long long int elapsed = 0;
   if (cycles[1] < cycles[0])
-    {
+  {
       //printf("c0 = %llu   c1 = %llu",cycles[0],cycles[1]);
       elapsed = UINT32_MAX - cycles[0];
       elapsed = elapsed + cycles[1];
       //printf("c0 = %llu  c1 = %llu max = %llu elapsed=%llu\n",cycles[0], cycles[1], UINT32_MAX,elapsed);            
-    }
+  }
   else
-    {
+  {
       elapsed = cycles[1] - cycles[0];
       //printf("\nc0 = %llu  c1 = %llu elapsed=%llu\n",cycles[0], cycles[1],elapsed);         
-    }
+  }
 
   double mhz = elapsed / microseconds;
 
@@ -232,8 +198,8 @@ get_msr_value (int cpu, uint32_t reg, unsigned int highbit,
 {
   uint64_t data;
   int fd;
-  char *pat;
-  int width;
+//  char *pat;
+//  int width;
   char msr_file_name[64];
   int bits;
 
@@ -241,54 +207,42 @@ get_msr_value (int cpu, uint32_t reg, unsigned int highbit,
   sprintf (msr_file_name, "/dev/cpu/%d/msr", cpu);
   fd = open (msr_file_name, O_RDONLY);
   if (fd < 0)
-    {
-      if (errno == ENXIO)
+  {
+    if (errno == ENXIO)
 	{
 	  fprintf (stderr, "rdmsr: No CPU %d\n", cpu);
 	  exit (2);
-	}
-      else if (errno == EIO)
-	{
+	}else if (errno == EIO){
 	  fprintf (stderr, "rdmsr: CPU %d doesn't support MSRs\n", cpu);
 	  exit (3);
-	}
-      else
-	{
+	}else{
 	  perror ("rdmsr:open");
 	  exit (127);
 	}
-    }
+  }
 
   if (pread (fd, &data, sizeof data, reg) != sizeof data)
-    {
+  {
       perror ("rdmsr:pread");
       exit (127);
-    }
+  }
 
   close (fd);
 
   bits = highbit - lowbit + 1;
   if (bits < 64)
-    {
+  {
       /* Show only part of register */
       data >>= lowbit;
       data &= (1ULL << bits) - 1;
-    }
-
-  pat = NULL;
+  }
 
   /* Make sure we get sign correct */
   if (data & (1ULL << (bits - 1)))
-    {
+  {
       data &= ~(1ULL << (bits - 1));
       data = -data;
-    }
-  pat = "%*lld\n";
-
-  width = 1;			/* Default */
-
-  if (width < 1)
-    width = 1;
+  }
 
   return (data);
 }
@@ -302,29 +256,25 @@ set_msr_value (int cpu, uint32_t reg, uint64_t data)
   sprintf (msr_file_name, "/dev/cpu/%d/msr", cpu);
   fd = open (msr_file_name, O_WRONLY);
   if (fd < 0)
-    {
-      if (errno == ENXIO)
+  {
+    if (errno == ENXIO)
 	{
 	  fprintf (stderr, "wrmsr: No CPU %d\n", cpu);
 	  exit (2);
-	}
-      else if (errno == EIO)
-	{
+	}else if (errno == EIO){
 	  fprintf (stderr, "wrmsr: CPU %d doesn't support MSRs\n", cpu);
 	  exit (3);
-	}
-      else
-	{
+	}else{
 	  perror ("wrmsr:open");
 	  exit (127);
 	}
-    }
+  }
 
   if (pwrite (fd, &data, sizeof data, reg) != sizeof data)
-    {
+  {
       perror ("wrmsr:pwrite");
       exit (127);
-    }
+  }
   return(1);
 }
 

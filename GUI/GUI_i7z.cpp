@@ -5,6 +5,19 @@
  *   Under GPL v2
  *
  * ----------------------------------------------------------------------- */
+#include <memory.h>
+#include <errno.h>
+#include <stdio.h>
+#include <fcntl.h>
+#include <unistd.h>
+#include <stdlib.h>
+#include <getopt.h>
+#include <inttypes.h>
+#include <sys/types.h>
+#include <sys/time.h>
+#include <time.h>
+
+
 #include <QApplication>
 #include <QPushButton>
 #include <QProgressBar>
@@ -19,7 +32,7 @@
 #ifndef UINT32_MAX
 # define UINT32_MAX (4294967295U)
 #endif
-#include "i7z.h"
+#include "../helper_functions.c"
 
 
 bool global_in_i7z_main_thread = false;
@@ -36,14 +49,14 @@ public:
 
 MyThread::MyThread ()
 {
-  //figure out the number of physical cores from cpuinfo
-  system
-    ("grep \"core id\" /proc/cpuinfo |sort -|uniq -|wc -l > /tmp/numPhysical.txt");
-
-  //Open the parsed cpufreq file and obtain the cpufreq from /proc/cpuinfo
   FILE *tmp_file;
   char tmp_str[30];
   unsigned int numPhysicalCores;
+
+  //figure out the number of physical cores from cpuinfo
+  system ("grep \"core id\" /proc/cpuinfo |sort -|uniq -|wc -l > /tmp/numPhysical.txt");
+
+  //Open the parsed cpufreq file and obtain the cpufreq from /proc/cpuinfo
   //Parse the numPhysical and numLogical file to obtain the number of physical cores
   tmp_file = fopen ("/tmp/numPhysical.txt", "r");
   fgets (tmp_str, 30, tmp_file);
@@ -61,7 +74,7 @@ MyThread::MyThread ()
   C6_TIME = (long double *) malloc (sizeof (long double) * numCPUs);
 
   int i;
-  for (i = 0; i < numCPUs; i++)
+  for (i = 0; i < (int)numCPUs; i++)
     {
       FREQ[i] = 0;
       MULT[i] = 0;
@@ -72,52 +85,141 @@ MyThread::MyThread ()
     }
 }
 
-//_FREQ[i], _MULT[i],C0_time[i]*100,C1_time[i]*100,C3_time[i]*100,C6_time[i]*100
-
-
 
 void
 MyThread::run ()
 {
-  int width = 1;
-  int i, j;
+  int i;
 
   //MSR number and hi:low bit of that MSR
+  //This msr contains a lot of stuff, per socket wise
+  //one can pass any core number and then get in multiplier etc 
   int PLATFORM_INFO_MSR = 206;	//CE 15:8
   int PLATFORM_INFO_MSR_low = 8;
   int PLATFORM_INFO_MSR_high = 15;
 
-  int IA32_MISC_ENABLE = 416;
-  int TURBO_FLAG_low = 38;
-  int TURBO_FLAG_high = 38;
+  ////To find out if Turbo is enabled use the below msr and bit 38
+  ////bit for TURBO is 38
+  ////msr reading is now moved into tubo_status
+  //int IA32_MISC_ENABLE = 416;
+  //int TURBO_FLAG_low = 38;
+  //int TURBO_FLAG_high = 38;
 
-  int MSR_TURBO_RATIO_LIMIT = 429;
+
+  //int MSR_TURBO_RATIO_LIMIT = 429;
 
   int CPU_NUM;
   int CPU_Multiplier;
   float BLCK;
   char TURBO_MODE;
 
-  printf ("modprobbing for msr");
-  system ("modprobe msr");
+
+  struct family_info proc_info;
+
+
+  get_familyinformation (&proc_info);
+
+  //printf("%x %x",proc_info.extended_model,proc_info.family);
+
+  //check if its nehalem or exit
+  //Info from page 641 of Intel Manual 3B
+  //Extended model and Model can help determine the right cpu
+  if (proc_info.family == 0x6)
+  {
+    if (proc_info.extended_model == 0x1)
+	{
+	  switch (proc_info.model)
+	    {
+	    case 0xA:
+	      printf ("i7z DEBUG: Detected a nehalem (i7)\n");
+	      break;
+	    case 0xE:
+	    case 0xF:
+	      printf ("i7z DEBUG: Detected a nehalem (i7/i5)\n");
+	      break;
+	    default:
+	      printf ("i7z DEBUG: Unknown processor, not exactly based on Nehalem\n");
+	      exit (1);
+	    }
+	}else if (proc_info.extended_model == 0x2)
+	 	{
+		  switch (proc_info.model)
+    	  {
+			case 0xE:
+			  printf ("i7z DEBUG: Detected a nehalem (Xeon)\n");
+			  break;
+			case 0x5:
+			case 0xC:
+			  printf ("i7z DEBUG: Detected a nehalem (32nm Westmere)\n");
+			  break;
+			default:
+			  printf ("i7z DEBUG: Unknown processor, not exactly based on Nehalem\n");
+			  exit (1);
+    	  }
+	}else{
+      printf ("i7z DEBUG: Unknown processor, not exactly based on Nehalem\n");
+      exit (1);
+	}
+  }else{
+      printf ("i7z DEBUG: Unknown processor, not exactly based on Nehalem\n");
+      exit (1);
+  }
+
+
+  printf("i7z DEBUG: msr = Model Specific Register\n");
+  //test if the msr file exists
+  if (access ("/dev/cpu/0/msr", F_OK) == 0)
+  {
+      printf ("i7z DEBUG: msr device files exist /dev/cpu/*/msr\n");
+      if (access ("/dev/cpu/0/msr", W_OK) == 0)
+	  {
+		  //a system mght have been set with msr allowable to be written
+		  //by a normal user so...
+		  //Do nothing.
+		  printf ("i7z DEBUG: You have write permissions to msr device files\n");
+	  }else{
+		  printf ("i7z DEBUG: You DONOT have write permissions to msr device files\n");
+		  printf ("i7z DEBUG: A solution is to run this program as root\n");
+		  exit (1);
+	  }
+  }else{
+      printf ("i7z DEBUG: msr device files DONOT exist, trying out a makedev script\n");
+      if (geteuid () == 0)
+      {
+		  //Try the Makedev script
+		  system ("msr_major=202; \
+						cpuid_major=203; \
+						n=0; \
+						while [ $n -lt 16 ]; do \
+							mkdir -m 0755 -p /dev/cpu/$n; \
+							mknod /dev/cpu/$n/msr -m 0600 c $msr_major $n; \
+							mknod /dev/cpu/$n/cpuid -m 0444 c $cpuid_major $n; \
+							n=`expr $n + 1`; \
+						done; \
+						");
+		  printf ("i7z DEBUG: modprobbing for msr\n");
+		  system ("modprobe msr");
+	  }else{
+		  printf ("i7z DEBUG: You DONOT have root privileges, mknod to create device entries won't work out\n");
+		  printf ("i7z DEBUG: A solution is to run this program as root\n");
+		  exit (1);
+      }
+  }
   sleep (1);
 
   // 3B defines till Max 4 Core and the rest bit values from 32:63 were reserved.  
-  int MAX_TURBO_1C = get_msr_value (CPU_NUM, MSR_TURBO_RATIO_LIMIT, 7, 0);
-  int MAX_TURBO_2C = get_msr_value (CPU_NUM, MSR_TURBO_RATIO_LIMIT, 15, 8);
-  int MAX_TURBO_3C = get_msr_value (CPU_NUM, MSR_TURBO_RATIO_LIMIT, 23, 16);
-  int MAX_TURBO_4C = get_msr_value (CPU_NUM, MSR_TURBO_RATIO_LIMIT, 31, 24);
+  // int MAX_TURBO_1C = get_msr_value (CPU_NUM, MSR_TURBO_RATIO_LIMIT, 7, 0);
+  // int MAX_TURBO_2C = get_msr_value (CPU_NUM, MSR_TURBO_RATIO_LIMIT, 15, 8);
+  // int MAX_TURBO_3C = get_msr_value (CPU_NUM, MSR_TURBO_RATIO_LIMIT, 23, 16);
+  // int MAX_TURBO_4C = get_msr_value (CPU_NUM, MSR_TURBO_RATIO_LIMIT, 31, 24);
 
 
   //CPUINFO is wrong for i7 but correct for the number of physical and logical cores present
   //If Hyperthreading is enabled then, multiple logical processors will share a common CORE ID
   //http://www.redhat.com/magazine/022aug06/departments/tips_tricks/
-  system
-    ("cat /proc/cpuinfo |grep MHz|sed 's/cpu\\sMHz\\s*:\\s//'|tail -n 1 > /tmp/cpufreq.txt");
-  system
-    ("grep \"core id\" /proc/cpuinfo |sort -|uniq -|wc -l > /tmp/numPhysical.txt");
-  system
-    ("grep \"processor\" /proc/cpuinfo |sort -|uniq -|wc -l > /tmp/numLogical.txt");
+  system ("cat /proc/cpuinfo |grep MHz|sed 's/cpu\\sMHz\\s*:\\s//'|tail -n 1 > /tmp/cpufreq.txt");
+  system ("grep \"core id\" /proc/cpuinfo |sort -|uniq -|wc -l > /tmp/numPhysical.txt");
+  system ("grep \"processor\" /proc/cpuinfo |sort -|uniq -|wc -l > /tmp/numLogical.txt");
 
 
   //Open the parsed cpufreq file and obtain the cpufreq from /proc/cpuinfo
@@ -203,11 +305,10 @@ MyThread::run ()
   unsigned long int old_val_REF[numCPUs], new_val_REF[numCPUs];
   unsigned long int old_val_C3[numCPUs], new_val_C3[numCPUs];
   unsigned long int old_val_C6[numCPUs], new_val_C6[numCPUs];
-  unsigned long int old_val_C1[numCPUs], new_val_C1[numCPUs];
+//  unsigned long int old_val_C1[numCPUs], new_val_C1[numCPUs];
 
   unsigned long long int old_TSC[numCPUs], new_TSC[numCPUs];
 
-  struct timezone tz;
   struct timeval tvstart[numCPUs], tvstop[numCPUs];
 
   struct timespec one_second_sleep;
@@ -231,33 +332,29 @@ MyThread::run ()
 //  mvprintw(12,0,"Current Freqs\n");
 
   for (i = 0; i < numCPUs; i++)
-    {
+  {
       CPU_NUM = i;
-      IA32_PERF_GLOBAL_CTRL_Value =
-	get_msr_value (CPU_NUM, IA32_PERF_GLOBAL_CTRL, 63, 0);
+      IA32_PERF_GLOBAL_CTRL_Value =	get_msr_value (CPU_NUM, IA32_PERF_GLOBAL_CTRL, 63, 0);
       set_msr_value (CPU_NUM, IA32_PERF_GLOBAL_CTRL, 0x700000003);
-      IA32_FIXED_CTR_CTL_Value =
-	get_msr_value (CPU_NUM, IA32_FIXED_CTR_CTL, 63, 0);
+
+      IA32_FIXED_CTR_CTL_Value = get_msr_value (CPU_NUM, IA32_FIXED_CTR_CTL, 63, 0);
       set_msr_value (CPU_NUM, IA32_FIXED_CTR_CTL, 819);
-      IA32_PERF_GLOBAL_CTRL_Value =
-	get_msr_value (CPU_NUM, IA32_PERF_GLOBAL_CTRL, 63, 0);
-      IA32_FIXED_CTR_CTL_Value =
-	get_msr_value (CPU_NUM, IA32_FIXED_CTR_CTL, 63, 0);
+
+      IA32_PERF_GLOBAL_CTRL_Value =	get_msr_value (CPU_NUM, IA32_PERF_GLOBAL_CTRL, 63, 0);
+      IA32_FIXED_CTR_CTL_Value = get_msr_value (CPU_NUM, IA32_FIXED_CTR_CTL, 63, 0);
 
       old_val_CORE[i] = get_msr_value (CPU_NUM, 778, 63, 0);
       old_val_REF[i] = get_msr_value (CPU_NUM, 779, 63, 0);
       old_val_C3[i] = get_msr_value (CPU_NUM, 1020, 63, 0);
       old_val_C6[i] = get_msr_value (CPU_NUM, 1021, 63, 0);
       old_TSC[i] = rdtsc ();
-    }
-
-
+  }
 
   for (;;)
-    {
-      nanosleep (&one_second_sleep, NULL);
+  {
+    nanosleep (&one_second_sleep, NULL);
 
-      for (i = 0; i < numCPUs; i++)
+    for (i = 0; i < numCPUs; i++)
 	{
 	  CPU_NUM = i;
 	  new_val_CORE[i] = get_msr_value (CPU_NUM, 778, 63, 0);
@@ -329,53 +426,47 @@ MyThread::run ()
 
 	  C1_time[i] -= C3_time[i] + C6_time[i];
 
-	  if (C0_time[i] < 1e-2)
-	    if (C0_time[i] > 1e-4)
-	      C0_time[i] = 0.01;
-	    else
-	      C0_time[i] = 0;
+	  if (C0_time[i] < 1e-2){
+	    if (C0_time[i] > 1e-4) 	C0_time[i] = 0.01;
+	    else				    C0_time[i] = 0;
+	  }
 
-	  if (C1_time[i] < 1e-2)
-	    if (C1_time[i] > 1e-4)
-	      C1_time[i] = 0.01;
-	    else
-	      C1_time[i] = 0;
+	  if (C1_time[i] < 1e-2){
+	    if (C1_time[i] > 1e-4)  C1_time[i] = 0.01;
+	    else				    C1_time[i] = 0;
+	  }
 
-	  if (C3_time[i] < 1e-2)
-	    if (C3_time[i] > 1e-4)
-	      C3_time[i] = 0.01;
-	    else
-	      C3_time[i] = 0;
+	  if (C3_time[i] < 1e-2){
+	    if (C3_time[i] > 1e-4)  C3_time[i] = 0.01;
+	    else			        C3_time[i] = 0;
+	  }
 
-	  if (C6_time[i] < 1e-2)
-	    if (C6_time[i] > 1e-4)
-	      C6_time[i] = 0.01;
-	    else
-	      C6_time[i] = 0;
-
+	  if (C6_time[i] < 1e-2){
+	    if (C6_time[i] > 1e-4)  C6_time[i] = 0.01;
+	    else			        C6_time[i] = 0;
+	  }
 	}
 
-      TRUE_CPU_FREQ = 0;
-      for (i = 0; i < numCPUs; i++)
-	if (_FREQ[i] > TRUE_CPU_FREQ)
-	  TRUE_CPU_FREQ = _FREQ[i];
+    TRUE_CPU_FREQ = 0;
+    for (i = 0; i < numCPUs; i++)
+		if (_FREQ[i] > TRUE_CPU_FREQ)
+		  TRUE_CPU_FREQ = _FREQ[i];
 
-      memcpy (old_val_CORE, new_val_CORE,
-	      sizeof (unsigned long int) * numCPUs);
-      memcpy (old_val_REF, new_val_REF, sizeof (unsigned long int) * numCPUs);
-      memcpy (old_val_C3, new_val_C3, sizeof (unsigned long int) * numCPUs);
-      memcpy (old_val_C6, new_val_C6, sizeof (unsigned long int) * numCPUs);
-      memcpy (tvstart, tvstop, sizeof (struct timeval) * numCPUs);
-      memcpy (old_TSC, new_TSC, sizeof (unsigned long long int) * numCPUs);
+    memcpy (old_val_CORE, new_val_CORE, sizeof (unsigned long int) * numCPUs);
+    memcpy (old_val_REF, new_val_REF, sizeof (unsigned long int) * numCPUs);
+    memcpy (old_val_C3, new_val_C3, sizeof (unsigned long int) * numCPUs);
+    memcpy (old_val_C6, new_val_C6, sizeof (unsigned long int) * numCPUs);
+    memcpy (tvstart, tvstop, sizeof (struct timeval) * numCPUs);
+    memcpy (old_TSC, new_TSC, sizeof (unsigned long long int) * numCPUs);
 
-      memcpy (FREQ, _FREQ, sizeof (double) * numCPUs);
-      memcpy (MULT, _MULT, sizeof (double) * numCPUs);
-      memcpy (C0_TIME, C0_time, sizeof (long double) * numCPUs);
-      memcpy (C1_TIME, C1_time, sizeof (long double) * numCPUs);
-      memcpy (C3_TIME, C3_time, sizeof (long double) * numCPUs);
-      memcpy (C6_TIME, C6_time, sizeof (long double) * numCPUs);
-      global_in_i7z_main_thread = true;
-    }
+    memcpy (FREQ, _FREQ, sizeof (double) * numCPUs);
+    memcpy (MULT, _MULT, sizeof (double) * numCPUs);
+    memcpy (C0_TIME, C0_time, sizeof (long double) * numCPUs);
+    memcpy (C1_TIME, C1_time, sizeof (long double) * numCPUs);
+    memcpy (C3_TIME, C3_time, sizeof (long double) * numCPUs);
+    memcpy (C6_TIME, C6_time, sizeof (long double) * numCPUs);
+    global_in_i7z_main_thread = true;
+  }
 
 }
 
@@ -397,18 +488,14 @@ Q_OBJECT public:
 MyWidget::MyWidget (QWidget * parent):QWidget (parent)
 {
 
-  //figure out the number of physical cores from cpuinfo
-  system
-    ("grep \"core id\" /proc/cpuinfo |sort -|uniq -|wc -l > /tmp/numPhysical.txt");
-
-  //Open the parsed cpufreq file and obtain the cpufreq from /proc/cpuinfo
-  FILE *
-    tmp_file;
+  FILE * tmp_file;
   char tmp_str[30];
 
-  unsigned int
-    numPhysicalCores,
-    numLogicalCores;
+  //figure out the number of physical cores from cpuinfo
+  system ("grep \"core id\" /proc/cpuinfo |sort -|uniq -|wc -l > /tmp/numPhysical.txt");
+
+  //Open the parsed cpufreq file and obtain the cpufreq from /proc/cpuinfo
+  unsigned int numPhysicalCores;
   //Parse the numPhysical and numLogical file to obtain the number of physical cores
   tmp_file = fopen ("/tmp/numPhysical.txt", "r");
   fgets (tmp_str, 30, tmp_file);
@@ -417,11 +504,10 @@ MyWidget::MyWidget (QWidget * parent):QWidget (parent)
 
   numCPUs = numPhysicalCores;
 
-  int
-    i,
-    j;
-  for (i = 0; i < numCPUs; i++)
-    {
+  int  i;
+
+  for (i = 0; i < (int)numCPUs; i++)
+  {
       C0_l[i] = new QProgressBar;
       C0_l[i]->setMaximum (99);
       C0_l[i]->setMinimum (0);
@@ -435,19 +521,18 @@ MyWidget::MyWidget (QWidget * parent):QWidget (parent)
       C6_l[i]->setMaximum (99);
       C6_l[i]->setMinimum (0);
       Freq_[i] = new QLabel (tr (""));
-    }
+  }
 
-  QGridLayout *
-    layout1 = new QGridLayout;
+  QGridLayout * layout1 = new QGridLayout;
 
 
-  for (i = 0; i < numCPUs; i++)
-    {
+  for (i = 0; i < (int)numCPUs; i++)
+  {
       layout1->addWidget (C0_l[i], i + 1, 1);
       layout1->addWidget (C1_l[i], i + 1, 2);
       layout1->addWidget (C3_l[i], i + 1, 3);
       layout1->addWidget (C6_l[i], i + 1, 4);
-    }
+  }
 
   C0 = new QLabel (tr ("C0"));
   C0->setAlignment (Qt::AlignCenter);
@@ -468,26 +553,21 @@ MyWidget::MyWidget (QWidget * parent):QWidget (parent)
   StatusMessage = new QLabel (tr ("Wait"));
   Curr_Freq = new QLabel (tr ("Wait"));
 
-  for (i = 0; i < numCPUs; i++)
-    {
+  for (i = 0; i < (int)numCPUs; i++)
       layout1->addWidget (ProcNames[i], i + 1, 0);
-    }
 
   layout1->addWidget (C0, 0, 1);
   layout1->addWidget (C1, 0, 2);
   layout1->addWidget (C3, 0, 3);
   layout1->addWidget (C6, 0, 4);
 
-  for (i = 0; i < numCPUs; i++)
-    {
+  for (i = 0; i < (int)numCPUs; i++)
       layout1->addWidget (Freq_[i], i + 1, 5);
-    }
 
   layout1->addWidget (StatusMessage, numCPUs + 1, 4);
   layout1->addWidget (Curr_Freq, numCPUs + 1, 5);
 
-  QTimer *
-    timer = new QTimer (this);
+  QTimer *timer = new QTimer (this);
   connect (timer, SIGNAL (timeout ()), this, SLOT (UpdateWidget ()));
   timer->start (1000);
 
@@ -502,25 +582,26 @@ MyWidget::UpdateWidget ()
 {
   int i;
   char val2set[100];
-  for (i = 0; i < numCPUs; i++)
-    {
+  for (i = 0; i < (int)numCPUs; i++)
+  {
       snprintf (val2set, 100, "%0.2f Ghz", mythread->FREQ[i]);
       Freq_[i]->setText (val2set);
-    }
+  }
 
-  for (i = 0; i < numCPUs; i++)
-    {
+  for (i = 0; i < (int)numCPUs; i++)
+  {
       C0_l[i]->setValue (mythread->C0_TIME[i] * 100);
       C1_l[i]->setValue (mythread->C1_TIME[i] * 100);
       C3_l[i]->setValue (mythread->C3_TIME[i] * 100);
       C6_l[i]->setValue (mythread->C6_TIME[i] * 100);
-    }
+  }
+
   float Max_Freq = 0;
-  for (i = 0; i < numCPUs; i++)
-    {
-      if (mythread->FREQ[i] > Max_Freq)
-	Max_Freq = mythread->FREQ[i];
-    }
+  for (i = 0; i < (int)numCPUs; i++)
+  {
+	if (mythread->FREQ[i] > Max_Freq)
+		Max_Freq = mythread->FREQ[i];
+  }
   StatusMessage->setText ("Current Freq:");
   snprintf (val2set, 100, "%0.2f Ghz", Max_Freq);
   Curr_Freq->setText (val2set);

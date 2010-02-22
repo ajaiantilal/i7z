@@ -1,6 +1,6 @@
 #ident "$Id: Makefile,v 1.2 2004/07/20 15:54:59 hpa Exp $"
 ## -----------------------------------------------------------------------
-##   
+##
 ##   Copyright 2000 Transmeta Corporation - All Rights Reserved
 ##
 ##   This program is free software; you can redistribute it and/or modify
@@ -15,19 +15,33 @@
 # Makefile for MSRs
 #
 
+#makefile updated from patch by anestling
+
+CFLAGSANY = -g -O0 -fomit-frame-pointer -D_GNU_SOURCE -D_FILE_OFFSET_BITS=64 -DBUILD_MAIN -Wall
+
+LBITS := $(shell getconf LONG_BIT)
+ifeq ($(LBITS),64)
+   CFLAGS = $(CFLAGSANY) -Dx64_BIT
+else
+   CFLAGS = $(CFLAGSANY) -Dx86
+endif
+
 CC       = gcc 
-CFLAGS   = -g -O0 -fomit-frame-pointer -D_GNU_SOURCE -D_FILE_OFFSET_BITS=64 -Dx64_BIT -DBUILD_MAIN #-DUSE_INTEL_CPUID
+
 LDFLAGS  = -lncurses
 INCLUDEFLAGS = 
 
-#INTEL_O = get_cpuid_lix64.o util_os.o cpu_topo.o
-#INTEL_O = Intel_CPUID/get_cpuid_lix64.s Intel_CPUID/util_os.c Intel_CPUID/cpu_topo.c
+OBJS = helper_functions
 
 BIN	= i7z
+SRC	= i7z.c helper_functions.c
 
 sbindir = /usr/sbin
 
-all: clean $(BIN)
+all: bin
+
+bin:
+	$(CC) $(CFLAGS) $(LDFLAGS) $(INCLUDEFLAGS) $(SRC) -o $(BIN)
 
 clean:
 	rm -f *.o $(BIN)
@@ -37,17 +51,4 @@ distclean: clean
 
 install: all
 	install -m 755 $(BIN) $(sbindir)
-	
-#intel:
-#	gcc -g -c Intel_CPUID/get_cpuid_lix64.s -o get_cpuid_lix32.o
-#	gcc -g -c Intel_CPUID/util_os.c
-#	gcc -g -c Intel_CPUID/cpu_topo.c
-	
-.o:
-	$(CC) $(LDFLAGS) -o $@ $(INTEL_O) $< 
 
-.c.o:
-	$(CC) $(CFLAGS) $(INCLUDEFLAGS) -o $@ $<
-
-.c:
-	$(CC) $(CFLAGS) $(LDFLAGS) $(INCLUDEFLAGS)  -o $@ $< $(INTEL_O)
