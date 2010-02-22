@@ -33,7 +33,9 @@
 #include <sys/time.h>
 #include <time.h>
 
+
 //#define ULLONG_MAX 18446744073709551615
+
 
 #ifndef x64_BIT
 //http://www.mcs.anl.gov/~kazutomo/rdtsc.html
@@ -71,11 +73,11 @@ void
 print_family_info (struct family_info *proc_info)
 {
 //print CPU info
-  printf ("    Stepping %x\n", proc_info->stepping);
-  printf ("    Model %x\n", proc_info->model);
-  printf ("    Family %x\n", proc_info->family);
-  printf ("    Processor Type %x\n", proc_info->processor_type);
-  printf ("    Extended Model %x\n", proc_info->extended_model);
+  printf ("i7z DEBUG:    Stepping %x\n", proc_info->stepping);
+  printf ("i7z DEBUG:    Model %x\n", proc_info->model);
+  printf ("i7z DEBUG:    Family %x\n", proc_info->family);
+  printf ("i7z DEBUG:    Processor Type %x\n", proc_info->processor_type);
+  printf ("i7z DEBUG:    Extended Model %x\n", proc_info->extended_model);
   //    printf("    Extended Family %x\n", (short int*)(&proc_info->extended_family));
   //    printf("    Extended Family %d\n", proc_info->extended_family);
 }
@@ -87,7 +89,7 @@ get_vendor (char *vendor_string)
 {
 //get vendor name
   unsigned int b, c, d, e;
-  int i;
+//  int i;
   asm volatile ("mov %4, %%eax; "	// 0 into eax
 		"cpuid;" "mov %%eax, %0;"	// eeax into b
 		"mov %%ebx, %1;"	// eebx into c
@@ -110,7 +112,7 @@ turbo_status ()
 {
 //turbo state flag
   unsigned int eax;
-  int i;
+//  int i;
   asm volatile ("mov %1, %%eax; "	// 0 into eax
 		"cpuid;" "mov %%eax, %0;"	// eeax into b
 		:"=r" (eax)	/* output */
@@ -134,7 +136,7 @@ get_familyinformation (struct family_info *proc_info)
 		:"r" (1)	/* input */
 		:"%eax"		/* clobbered register, will be modifying inside the asm routine so dont use them */
     );
-  printf ("eax %x\n", b);
+//  printf ("eax %x\n", b);
   proc_info->stepping = b & 0x0000000F;	//bits 3:0
   proc_info->model = (b & 0x000000F0) >> 4;	//bits 7:4
   proc_info->family = (b & 0x00000F00) >> 8;	//bits 11:8
@@ -229,7 +231,7 @@ get_msr_value (int cpu, uint32_t reg, unsigned int highbit,
 	       unsigned int lowbit)
 {
   uint64_t data;
-  int c, fd;
+  int fd;
   char *pat;
   int width;
   char msr_file_name[64];
@@ -294,11 +296,8 @@ get_msr_value (int cpu, uint32_t reg, unsigned int highbit,
 uint64_t
 set_msr_value (int cpu, uint32_t reg, uint64_t data)
 {
-  int c, fd;
-  char *pat;
-  int width;
+  int fd;
   char msr_file_name[64];
-  int bits;
 
   sprintf (msr_file_name, "/dev/cpu/%d/msr", cpu);
   fd = open (msr_file_name, O_WRONLY);
@@ -326,6 +325,7 @@ set_msr_value (int cpu, uint32_t reg, uint64_t data)
       perror ("wrmsr:pwrite");
       exit (127);
     }
+  return(1);
 }
 
 
