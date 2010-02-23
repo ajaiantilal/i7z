@@ -245,7 +245,7 @@ int main (int argc, char *argv[])
 
   //estimate the freq using the estimate_MHz() code that is almost mhz accurate
   cpu_freq_cpuinfo = estimate_MHz ();
-  mvprintw (3, 0, "True Frequency (without accounting Turbo) %f\n",
+  mvprintw (3, 0, "True Frequency (without accounting Turbo) %0.0f MHz\n",
 	    cpu_freq_cpuinfo);
 
 
@@ -268,7 +268,7 @@ int main (int argc, char *argv[])
   //Blck is basically the true speed divided by the multiplier
   BLCK = cpu_freq_cpuinfo / CPU_Multiplier;
   mvprintw (4, 0,
-	    "CPU Multiplier %dx || Bus clock frequency (BCLK) %0.3f MHz \n",
+	    "CPU Multiplier %dx || Bus clock frequency (BCLK) %0.2f MHz \n",
 	    CPU_Multiplier, BLCK);
 
   //Get turbo mode status by reading msr within turbo_status
