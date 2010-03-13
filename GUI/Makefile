@@ -11,7 +11,13 @@
 CC            = gcc
 CXX           = g++
 DEFINES       = -DQT_NO_DEBUG -DQT_GUI_LIB -DQT_CORE_LIB -DQT_SHARED
-CFLAGS        = -pipe -O0 -Wall -W -D_REENTRANT $(DEFINES)
+LBITS	:= $(shell getconf LONG_BIT)
+ifeq ($(LBITS),64)
+    DEFINES       = -DQT_NO_DEBUG -DQT_GUI_LIB -DQT_CORE_LIB -DQT_SHARED -Dx64_BIT
+else
+    DEFINES       = -DQT_NO_DEBUG -DQT_GUI_LIB -DQT_CORE_LIB -DQT_SHARED
+endif    
+CFLAGS        = -pipe -O0 -Wall -W -D_REENTRANT $(DEFINES) 
 CXXFLAGS      = -pipe -O0 -Wall -W -D_REENTRANT $(DEFINES)
 INCPATH       = -I/usr/share/qt4/mkspecs/linux-g++ -I. -I/usr/include/qt4/QtCore -I/usr/include/qt4/QtCore -I/usr/include/qt4/QtGui -I/usr/include/qt4/QtGui -I/usr/include/qt4 -I. -I. -I.
 LINK          = g++
@@ -65,7 +71,7 @@ DIST          = /usr/share/qt4/mkspecs/common/g++.conf \
 		GUI.pro
 QMAKE_TARGET  = GUI
 DESTDIR       = 
-TARGET        = GUI
+TARGET        = i7z_GUI
 
 first: all
 ####### Implicit rules
