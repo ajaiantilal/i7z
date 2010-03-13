@@ -335,7 +335,7 @@ MyThread::run ()
   {
       CPU_NUM = i;
       IA32_PERF_GLOBAL_CTRL_Value =	get_msr_value (CPU_NUM, IA32_PERF_GLOBAL_CTRL, 63, 0);
-      set_msr_value (CPU_NUM, IA32_PERF_GLOBAL_CTRL, 0x700000003);
+      set_msr_value (CPU_NUM, IA32_PERF_GLOBAL_CTRL, 0x700000003LLU);
 
       IA32_FIXED_CTR_CTL_Value = get_msr_value (CPU_NUM, IA32_FIXED_CTR_CTL, 63, 0);
       set_msr_value (CPU_NUM, IA32_FIXED_CTR_CTL, 819);
@@ -350,8 +350,33 @@ MyThread::run ()
       old_TSC[i] = rdtsc ();
   }
 
+  int kk=0, ii;
   for (;;)
   {
+  
+  if(kk>10){
+    kk=0;
+    for (ii = 0; ii < numCPUs; ii++)
+    {
+      CPU_NUM = ii;
+//      IA32_PERF_GLOBAL_CTRL_Value =	get_msr_value (CPU_NUM, IA32_PERF_GLOBAL_CTRL, 63, 0);
+      set_msr_value (CPU_NUM, IA32_PERF_GLOBAL_CTRL, 0x700000003LLU);
+
+//      IA32_FIXED_CTR_CTL_Value = get_msr_value (CPU_NUM, IA32_FIXED_CTR_CTL, 63, 0);
+      set_msr_value (CPU_NUM, IA32_FIXED_CTR_CTL, 819);
+
+//      IA32_PERF_GLOBAL_CTRL_Value =	get_msr_value (CPU_NUM, IA32_PERF_GLOBAL_CTRL, 63, 0);
+//      IA32_FIXED_CTR_CTL_Value = get_msr_value (CPU_NUM, IA32_FIXED_CTR_CTL, 63, 0);
+
+      old_val_CORE[i] = get_msr_value (CPU_NUM, 778, 63, 0);
+      old_val_REF[i] = get_msr_value (CPU_NUM, 779, 63, 0);
+      old_val_C3[i] = get_msr_value (CPU_NUM, 1020, 63, 0);
+      old_val_C6[i] = get_msr_value (CPU_NUM, 1021, 63, 0);
+      old_TSC[i] = rdtsc ();
+    }
+  }    
+  kk=0;
+
     nanosleep (&one_second_sleep, NULL);
 
     for (i = 0; i < numCPUs; i++)
