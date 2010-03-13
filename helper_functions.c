@@ -275,6 +275,7 @@ set_msr_value (int cpu, uint32_t reg, uint64_t data)
       perror ("wrmsr:pwrite");
       exit (127);
   }
+  close(fd);
   return(1);
 }
 

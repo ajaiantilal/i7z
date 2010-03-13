@@ -361,10 +361,10 @@ int main (int argc, char *argv[])
   CPU_CLK_UNHALTED_CORE = get_msr_value (CPU_NUM, 778, 63, 0);
   CPU_CLK_UNHALTED_REF = get_msr_value (CPU_NUM, 779, 63, 0);
 
-  unsigned long int old_val_CORE[numCPUs], new_val_CORE[numCPUs];
-  unsigned long int old_val_REF[numCPUs], new_val_REF[numCPUs];
-  unsigned long int old_val_C3[numCPUs], new_val_C3[numCPUs];
-  unsigned long int old_val_C6[numCPUs], new_val_C6[numCPUs];
+  unsigned long long int old_val_CORE[numCPUs], new_val_CORE[numCPUs];
+  unsigned long long int old_val_REF[numCPUs], new_val_REF[numCPUs];
+  unsigned long long int old_val_C3[numCPUs], new_val_C3[numCPUs];
+  unsigned long long int old_val_C6[numCPUs], new_val_C6[numCPUs];
 //  unsigned long int old_val_C1[numCPUs], new_val_C1[numCPUs];
 
   unsigned long long int old_TSC[numCPUs], new_TSC[numCPUs];
@@ -398,7 +398,7 @@ int main (int argc, char *argv[])
       //Set up the performance counters and then start reading from them
       CPU_NUM = i;
       IA32_PERF_GLOBAL_CTRL_Value =	get_msr_value (CPU_NUM, IA32_PERF_GLOBAL_CTRL, 63, 0);
-      set_msr_value (CPU_NUM, IA32_PERF_GLOBAL_CTRL, 0x700000003);
+      set_msr_value (CPU_NUM, IA32_PERF_GLOBAL_CTRL, 0x700000003LLU);
 
       IA32_FIXED_CTR_CTL_Value = get_msr_value (CPU_NUM, IA32_FIXED_CTR_CTL, 63, 0);
       set_msr_value (CPU_NUM, IA32_FIXED_CTR_CTL, 819);
@@ -413,8 +413,33 @@ int main (int argc, char *argv[])
       old_TSC[i] = rdtsc ();
   }
 
+  int kk=0, ii;
+  
   for (;;)
     {
+		  if (kk < 10){
+		    kk=0;
+		    for (ii = 0; ii < numCPUs; ii++)
+		    {
+		      //Set up the performance counters and then start reading from them
+		      CPU_NUM = ii;
+		      //IA32_PERF_GLOBAL_CTRL_Value =	get_msr_value (CPU_NUM, IA32_PERF_GLOBAL_CTRL, 63, 0);
+		      set_msr_value (CPU_NUM, IA32_PERF_GLOBAL_CTRL, 0x700000003LLU);
+
+		      //IA32_FIXED_CTR_CTL_Value = get_msr_value (CPU_NUM, IA32_FIXED_CTR_CTL, 63, 0);
+		      set_msr_value (CPU_NUM, IA32_FIXED_CTR_CTL, 819);
+
+		      IA32_PERF_GLOBAL_CTRL_Value =	get_msr_value (CPU_NUM, IA32_PERF_GLOBAL_CTRL, 63, 0);
+		      IA32_FIXED_CTR_CTL_Value = get_msr_value (CPU_NUM, IA32_FIXED_CTR_CTL, 63, 0);
+
+		      old_val_CORE[ii] = get_msr_value (CPU_NUM, 778, 63, 0);
+		      old_val_REF[ii] = get_msr_value (CPU_NUM, 779, 63, 0);
+		      old_val_C3[ii] = get_msr_value (CPU_NUM, 1020, 63, 0);
+		      old_val_C6[ii] = get_msr_value (CPU_NUM, 1021, 63, 0);
+		      old_TSC[ii] = rdtsc ();
+		    }
+		  }
+		  kk++;
       nanosleep (&one_second_sleep, NULL);
       mvprintw (13, 0,
 		"\tProcessor  :Actual Freq (Mult.)  C0%%   Halt(C1)%%  C3 %%   C6 %%\n");
@@ -423,6 +448,7 @@ int main (int argc, char *argv[])
 		{
 		  //read from the performance counters
 		  //things like halted unhalted core cycles
+		  
 		  CPU_NUM = i;
 		  new_val_CORE[i] = get_msr_value (CPU_NUM, 778, 63, 0);
 		  new_val_REF[i] = get_msr_value (CPU_NUM, 779, 63, 0);
@@ -432,7 +458,7 @@ int main (int argc, char *argv[])
 
 		  if (old_val_CORE[i] > new_val_CORE[i])
 	  	  {	  //handle overflow
-			  CPU_CLK_UNHALTED_CORE = (3.40282366921e38 - old_val_CORE[i]) + new_val_CORE[i];
+			  CPU_CLK_UNHALTED_CORE = (UINT64_MAX - old_val_CORE[i]) + new_val_CORE[i];
 		  }else{
 			  CPU_CLK_UNHALTED_CORE = new_val_CORE[i] - old_val_CORE[i];
 		  }
@@ -445,21 +471,21 @@ int main (int argc, char *argv[])
 
 		  if (old_val_REF[i] > new_val_REF[i])
 	      {   //handle overflow
-			  CPU_CLK_UNHALTED_REF = (3.40282366921e38 - old_val_REF[i]) + new_val_REF[i];
+			  CPU_CLK_UNHALTED_REF = (UINT64_MAX - old_val_REF[i]) + new_val_REF[i]; //3.40282366921e38
 		  }else{
 			  CPU_CLK_UNHALTED_REF = new_val_REF[i] - old_val_REF[i];
 		  }
 
 		  if (old_val_C3[i] > new_val_C3[i])
 		  {   //handle overflow
-			  CPU_CLK_C3 = (3.40282366921e38 - old_val_C3[i]) + new_val_C3[i];
+			  CPU_CLK_C3 = (UINT64_MAX - old_val_C3[i]) + new_val_C3[i];
 		  }else{
 			  CPU_CLK_C3 = new_val_C3[i] - old_val_C3[i];
 		  }
 
 		  if (old_val_C6[i] > new_val_C6[i])
 		  {   //handle overflow
-			  CPU_CLK_C6 = (3.40282366921e38 - old_val_C6[i]) + new_val_C6[i];
+			  CPU_CLK_C6 = (UINT64_MAX - old_val_C6[i]) + new_val_C6[i];
 		  }else{
 			  CPU_CLK_C6 = new_val_C6[i] - old_val_C6[i];
 		  }
@@ -498,10 +524,15 @@ int main (int argc, char *argv[])
 			if (C6_time[i] > 1e-4)	{C6_time[i] = 0.01;}
 			else					{C6_time[i] = 0;}
 		  }
+		  //printf("%lld  - %lld", CPU_CLK_C6, (new_TSC[i] - old_TSC[i]));
 	  }
 
       for (i = 0; i < numCPUs; i++)
-		mvprintw (14 + i, 0, "\tProcessor %d:  %0.2f (%.2fx)\t%4.3Lg\t%4.3Lg\t%4.3Lg\t%4.3Lg\n", i + 1, _FREQ[i], _MULT[i], C0_time[i] * 100, C1_time[i] * 100 - (C3_time[i] * 100 + C6_time[i] * 100), C3_time[i] * 100, C6_time[i] * 100);	//C0_time[i]*100+C1_time[i]*100 around 100
+//		mvprintw (14 + i, 0, "\tProcessor %d:  %0.2f (%.2fx)\t%4.3Lg\t%4.3Lg\t%4.3Lg\t%4.3Lg\n", i + 1, _FREQ[i], _MULT[i],
+//		          C0_time[i] * 100, C1_time[i] * 100 - (C3_time[i] * 100 + C6_time[i] * 100), C3_time[i] * 100, C6_time[i] * 100);	//C0_time[i]*100+C1_time[i]*100 around 100
+		mvprintw (14 + i, 0, "\tProcessor %d:  %0.2f (%.2fx)\t%4.3Lg\t%4.3Lg\t%4.3Lg\t%4.3Lg\n", i + 1, _FREQ[i], _MULT[i],
+		          C0_time[i] * 100 , C1_time[i]* 100  - (C3_time[i] + C6_time[i] )* 100, C3_time[i]* 100 , C6_time[i]* 100);	//C0_time[i]*100+C1_time[i]*100 around 100
+
 
 	  TRUE_CPU_FREQ = 0;
 	  for (i = 0; i < numCPUs; i++)
