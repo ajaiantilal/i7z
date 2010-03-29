@@ -417,7 +417,7 @@ int main (int argc, char *argv[])
   
   for (;;)
     {
-		  if (kk < 10){
+		  if (kk > 10){
 		    kk=0;
 		    for (ii = 0; ii < numCPUs; ii++)
 		    {
