@@ -530,7 +530,7 @@ void get_package_ids(struct cpu_heirarchy_info* chi)
 	fclose(fp);
 }
 
-void get_candidate_cores(struct cpu_heirarchy_info* chi)
+/*void get_candidate_cores(struct cpu_heirarchy_info* chi)
 {
 	int i;
 	char tmp_str[200];
@@ -541,9 +541,9 @@ void get_candidate_cores(struct cpu_heirarchy_info* chi)
 				chi->candidate_cores[i]=1;
 			}
 	}
-}
+}*/
 
-/*void get_candidate_cores(struct cpu_heirarchy_info* chi)
+void get_candidate_cores(struct cpu_heirarchy_info* chi)
 {
 	int i;
 	for(i=0; i < chi->max_present_cpu ; i++){
@@ -560,7 +560,7 @@ void get_candidate_cores(struct cpu_heirarchy_info* chi)
 				}
 			}
 	}	
-}*/
+}
 
 void print_cpu_list(struct cpu_heirarchy_info chi)
 {
