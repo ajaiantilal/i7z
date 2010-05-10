@@ -28,13 +28,13 @@ endif
 
 CC       = gcc 
 
-LDFLAGS  = -lncurses
+LDFLAGS  = -lncurses -lpthread
 INCLUDEFLAGS = 
 
 OBJS = helper_functions
 
 BIN	= i7z
-SRC	= i7z.c helper_functions.c
+SRC	= i7z.c helper_functions.c i7z_Single_Socket.c i7z_Dual_Socket.c
 
 sbindir = /usr/sbin
 

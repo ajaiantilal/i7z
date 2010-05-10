@@ -8,6 +8,19 @@
  * ----------------------------------------------------------------------- */
 
 //structure to store the information about the processor
+#define proccpuinfo "/proc/cpuinfo"
+
+struct cpu_heirarchy_info{
+    int max_present_cpu;
+    int max_online_cpu;
+	int num_sockets;
+    int* core_state;
+    int* package_num;
+    int* sibling_num;
+	int* candidate_cores; //cores to use to get the information
+};
+
+
 struct family_info
 {
   char stepping;
@@ -51,13 +64,13 @@ void print_family_info (struct family_info *proc_info);
 #endif
 
 int turbo_status ();
-
+double cpufreq_info();
 void get_familyinformation (struct family_info *proc_info);
 
 double estimate_MHz ();
 
 uint64_t get_msr_value (int cpu, uint32_t reg, unsigned int highbit,
-			unsigned int lowbit);
+			unsigned int lowbit, int* error_indx);
 
 uint64_t set_msr_value (int cpu, uint32_t reg, uint64_t data);
 
@@ -66,6 +79,22 @@ uint64_t set_msr_value (int cpu, uint32_t reg, uint64_t data);
 void get_CPUs_info (unsigned int *num_Logical_OS,
 		    unsigned int *num_Logical_process,
 		    unsigned int *num_Processor_Core,
-		    unsigned int *num_Physical_Socket);
+		    
+unsigned int *num_Physical_Socket);
 
 #endif
+
+int get_number_of_present_cpu();
+void get_candidate_cores(struct cpu_heirarchy_info* chi);
+void get_online_cpus(struct cpu_heirarchy_info* chi);
+void get_siblings_list(struct cpu_heirarchy_info* chi);
+void get_package_ids(struct cpu_heirarchy_info* chi);
+void print_cpu_list(struct cpu_heirarchy_info chi);
+void construct_cpu_hierarchy(struct cpu_heirarchy_info *chi);
+void Print_Information_Processor();
+void Test_Or_Make_MSR_DEVICE_FILES();
+
+#define SET_ONLINE_ARRAY_MINUS1(online_cpus) {for(i=0;i<8;i++) online_cpus[i]=-1;}
+#define SET_ONLINE_ARRAY_PLUS1(online_cpus) {for(i=0;i<8;i++) online_cpus[i]=1;}
+#define SET_IF_TRUE(error_indx,a,b) if(error_indx) a=b;
+#define CONTINUE_IF_TRUE(cond) if(cond) continue;
