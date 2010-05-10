@@ -201,7 +201,7 @@ get_msr_value (int cpu, uint32_t reg, unsigned int highbit,
 //  int width;
   char msr_file_name[64];
   int bits;
-
+  *error_indx =0;
 
   sprintf (msr_file_name, "/dev/cpu/%d/msr", cpu);
   fd = open (msr_file_name, O_RDONLY);
