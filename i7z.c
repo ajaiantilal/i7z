@@ -41,7 +41,7 @@ int main ()
 	} 
 	if (chi.num_sockets == 1){
 		printf ("i7z DEBUG: SINGLE SOCKET DETECTED\n"); sleep(1);
-		Single_Socket(&chi);
+		Dual_Socket(&chi);
 	}else if(chi.num_sockets == 2){
 		printf ("i7z DEBUG: DUAL SOCKET DETECTED\n"); sleep(1);
 		Dual_Socket(&chi);

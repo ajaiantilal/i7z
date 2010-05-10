@@ -186,7 +186,8 @@ void *print_Socket (void *threadarg)
 
 	  for (;;)
 	  {
-   		  SET_ONLINE_ARRAY_PLUS1(online_cpus)
+   		  refresh ();
+		  SET_ONLINE_ARRAY_PLUS1(online_cpus)
 
 		  //We just need one CPU (we use Core-1) to figure out the multiplier and the bus clock freq.
 		  //multiplier doesnt automatically include turbo
@@ -236,8 +237,8 @@ void *print_Socket (void *threadarg)
 		  int MAX_TURBO_6C = get_msr_value (CPU_NUM, MSR_TURBO_RATIO_LIMIT, 47, 40, &error_indx);
 		  SET_IF_TRUE(error_indx,online_cpus[0],-1);
 
-		  fflush (stdout);
-		  sleep (1);
+		  //fflush (stdout);
+		  //sleep (1);
 
 		  char string_ptr1[200], string_ptr2[200];
 
@@ -268,7 +269,6 @@ void *print_Socket (void *threadarg)
 		  SET_IF_TRUE(error_indx,online_cpus[0],-1);
 		  CONTINUE_IF_TRUE(online_cpus[0]==-1);
 
-		  refresh ();
 		  nanosleep (&one_second_sleep, NULL);
 		  IA32_MPERF = get_msr_value (CPU_NUM, 231, 7, 0, &error_indx) - IA32_MPERF;
 		  SET_IF_TRUE(error_indx,online_cpus[0],-1);
@@ -278,7 +278,6 @@ void *print_Socket (void *threadarg)
 		  SET_IF_TRUE(error_indx,online_cpus[0],-1);
 		  CONTINUE_IF_TRUE(online_cpus[0]==-1);
 
-		  refresh ();
 		  mvprintw (4 + printw_offset, 0,
 			"  CPU Multiplier %dx || Bus clock frequency (BCLK) %0.2f MHz \n",
 			CPU_Multiplier, BLCK);
@@ -300,7 +299,8 @@ void *print_Socket (void *threadarg)
 						   MAX_TURBO_5C, MAX_TURBO_6C);
 		  }
 
-
+refresh ();
+		  
 		  if (thread_num == 0)
 		  {
 		    mvprintw (31, 0, "C0 = Processor running without halting");
@@ -340,6 +340,8 @@ void *print_Socket (void *threadarg)
 		    mvprintw (6 + printw_offset, 0,	"  True Frequency %0.2f MHz (%0.2f x [%d]) \n", TRUE_CPU_FREQ, BLCK, CPU_Multiplier);
 		  }
 
+refresh ();
+		  
 		  if (kk > 10)
 		  {
 			  kk = 0;
@@ -513,7 +515,8 @@ void *print_Socket (void *threadarg)
 		    	mvprintw (10 + ii + printw_offset, 0, "\tProcessor %d [%d]:\t  %0.2f (%.2fx)\t%4.3Lg\t%4.3Lg\t%4.3Lg\t%4.3Lg\n", i + 1, core_list[ii], _FREQ[i], _MULT[i], C0_time[i] * 100, C1_time[i] * 100 - (C3_time[i] + C6_time[i]) * 100, C3_time[i] * 100, C6_time[i] * 100);	//C0_time[i]*100+C1_time[i]*100 around 100
 			}
 		  }
-
+		refresh ();
+		  
 
 		  TRUE_CPU_FREQ = 0;
 		  for (ii = 0; ii < numCPUs; ii++)
