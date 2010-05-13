@@ -159,18 +159,18 @@ void print_i7z_socket(struct cpu_socket_info socket_0, int printw_offset, int PL
 
 			  if (numCPUs >= 2 && numCPUs < 4)
 			  {
-				sprintf (string_ptr1, "  Max TURBO (if Enabled) with 1/2");
-				sprintf (string_ptr2, " %dx / %dx ", MAX_TURBO_1C, MAX_TURBO_2C);
+				sprintf (string_ptr1, "  Max TURBO (if Enabled) with 1/2 cores");
+				sprintf (string_ptr2, " %dx/%dx ", MAX_TURBO_1C, MAX_TURBO_2C);
 			  }
 			  if (numCPUs >= 2 && numCPUs < 6)
 			  {
-				sprintf (string_ptr1, "  Max TURBO (if Enabled) with 1/2/3/4");
-				sprintf (string_ptr2, " %dx / %dx / %dx / %dx ", MAX_TURBO_1C, MAX_TURBO_2C, MAX_TURBO_3C, MAX_TURBO_4C);
+				sprintf (string_ptr1, "  Max TURBO (if Enabled) with 1/2/3/4 cores");
+				sprintf (string_ptr2, " %dx/%dx/%dx/%dx ", MAX_TURBO_1C, MAX_TURBO_2C, MAX_TURBO_3C, MAX_TURBO_4C);
 			  }
 			  if (numCPUs >= 2 && numCPUs >= 6)	// Gulftown 6-cores
 			  {
-				sprintf (string_ptr1, "  Max TURBO (if Enabled) with 1/2/3/4/5/6");
-				sprintf (string_ptr2, " %dx / %dx / %dx / %dx / %dx / %dx", MAX_TURBO_1C, MAX_TURBO_2C, MAX_TURBO_3C, MAX_TURBO_4C,
+				sprintf (string_ptr1, "  Max TURBO (if Enabled) with 1/2/3/4/5/6 cores");
+				sprintf (string_ptr2, " %dx/%dx/%dx/%dx/%dx/%dx ", MAX_TURBO_1C, MAX_TURBO_2C, MAX_TURBO_3C, MAX_TURBO_4C,
 							   MAX_TURBO_5C, MAX_TURBO_6C);
 			  }
 
