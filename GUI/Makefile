@@ -11,11 +11,17 @@
 CC            = gcc
 CXX           = g++
 DEFINES       = -DQT_NO_DEBUG -DQT_GUI_LIB -DQT_CORE_LIB -DQT_SHARED
-CFLAGS        = -pipe -O2 -Wall -W -D_REENTRANT $(DEFINES)
-CXXFLAGS      = -pipe -O2 -Wall -W -D_REENTRANT $(DEFINES)
+LBITS := $(shell getconf LONG_BIT)
+ifeq ($(LBITS),64)
+    CFLAGS        = -pipe -O0 -Wall -W -D_REENTRANT $(DEFINES) -Dx64_BIT
+    CXXFLAGS      = -pipe -O0 -Wall -W -D_REENTRANT $(DEFINES) -Dx64_BIT
+else
+    CFLAGS        = -pipe -O0 -Wall -W -D_REENTRANT $(DEFINES) -Dx86
+    CXXFLAGS      = -pipe -O0 -Wall -W -D_REENTRANT $(DEFINES) -Dx86
+endif
 INCPATH       = -I/usr/share/qt4/mkspecs/linux-g++ -I. -I/usr/include/qt4/QtCore -I/usr/include/qt4/QtGui -I/usr/include/qt4 -I. -I.
 LINK          = g++
-LFLAGS        = -Wl,-O1
+LFLAGS        = -Wl,-O0
 LIBS          = $(SUBLIBS)  -L/usr/lib -lQtGui -lQtCore -lpthread 
 AR            = ar cqs
 RANLIB        = 
