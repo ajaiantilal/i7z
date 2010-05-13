@@ -373,9 +373,9 @@ void print_i7z_socket(struct cpu_socket_info socket_0, int printw_offset, int PL
 			  {
 				i = core_list[ii];
 				if(online_cpus[ii]==-1){
-					mvprintw (10 + ii + printw_offset, 0, "\tProcessor %d:  OFFLINE\n",i + 1);
+					mvprintw (10 + ii + printw_offset, 0, "\tProcessor %d:  OFFLINE\n",ii + 1);
 				}else{
-					mvprintw (10 + ii + printw_offset, 0, "\tProcessor %d [%d]:\t  %0.2f (%.2fx)\t%4.3Lg\t%4.3Lg\t%4.3Lg\t%4.3Lg\n", i + 1, core_list[ii], _FREQ[i], _MULT[i], C0_time[i] * 100, C1_time[i] * 100 - (C3_time[i] + C6_time[i]) * 100, C3_time[i] * 100, C6_time[i] * 100);	//C0_time[i]*100+C1_time[i]*100 around 100
+					mvprintw (10 + ii + printw_offset, 0, "\tProcessor %d [%d]:\t  %0.2f (%.2fx)\t%4.3Lg\t%4.3Lg\t%4.3Lg\t%4.3Lg\n", ii + 1, core_list[ii], _FREQ[i], _MULT[i], C0_time[i] * 100, C1_time[i] * 100 - (C3_time[i] + C6_time[i]) * 100, C3_time[i] * 100, C6_time[i] * 100);	//C0_time[i]*100+C1_time[i]*100 around 100
 				}
 			  }
 			
