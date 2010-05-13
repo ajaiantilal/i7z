@@ -15,18 +15,14 @@
 extern int numPhysicalCores, numLogicalCores;
 extern double TRUE_CPU_FREQ;
 
-int Single_Socket(struct cpu_heirarchy_info *chi){
+int Single_Socket(){
 	  int row, col;	/* to store the number of rows and    *
 					 * the number of colums of the screen *
 					 * for NCURSES                        */
 
   	  printf ("i7z DEBUG: In i7z Single_Socket()\n"); 
 
- 	  Print_Information_Processor();
-
-	  Test_Or_Make_MSR_DEVICE_FILES();
-
-	  sleep (1);
+	  sleep (3);
 
 	  //iterator
 	  int i;
@@ -273,6 +269,7 @@ int Single_Socket(struct cpu_heirarchy_info *chi){
 
 	  int kk=11, ii;
 	  
+	  double estimated_mhz;
 	  for (;;)
 		{
 		      SET_ONLINE_ARRAY_PLUS1(online_cpus)
@@ -326,6 +323,7 @@ int Single_Socket(struct cpu_heirarchy_info *chi){
 		  mvprintw (13, 0,
 			"\tProcessor  :Actual Freq (Mult.)  C0%%   Halt(C1)%%  C3 %%   C6 %%\n");
 
+		  estimated_mhz = estimate_MHz ();
 		  for (i = 0; i < numCPUs; i++)
 			{
 			  //read from the performance counters
@@ -385,7 +383,7 @@ int Single_Socket(struct cpu_heirarchy_info *chi){
 			  }
 
 			  _FREQ[i] =
-				estimate_MHz () * ((long double) CPU_CLK_UNHALTED_CORE /
+				estimated_mhz * ((long double) CPU_CLK_UNHALTED_CORE /
 						   (long double) CPU_CLK_UNHALTED_REF);
 			  _MULT[i] = _FREQ[i] / BLCK;
 

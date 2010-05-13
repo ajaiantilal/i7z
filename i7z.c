@@ -23,8 +23,8 @@
 #include "i7z.h"
 //#include "CPUHeirarchy.h"
 
-int Single_Socket(struct cpu_heirarchy_info *chi);
-int Dual_Socket(struct cpu_heirarchy_info *chi);
+int Single_Socket();
+int Dual_Socket();
 
 int numPhysicalCores, numLogicalCores;
 double TRUE_CPU_FREQ;
@@ -33,21 +33,28 @@ double TRUE_CPU_FREQ;
 
 int main ()
 {
-	struct cpu_heirarchy_info chi;
-	{
-		construct_cpu_hierarchy(&chi);
-		print_cpu_list(chi);
-		sleep(1);
-	} 
-	if (chi.num_sockets == 1){
-		printf ("i7z DEBUG: SINGLE SOCKET DETECTED\n"); sleep(1);
-		Single_Socket(&chi);
-	}else if(chi.num_sockets == 2){
-		printf ("i7z DEBUG: DUAL SOCKET DETECTED\n"); sleep(1);
-		Dual_Socket(&chi);
-	}else if(chi.num_sockets > 2){
-		printf ("i7z DEBUG: MORE THAN 2 SOCKET DETECTED, BUT I WILL STILL PRINT DUAL SOCKET INFO\n"); sleep(2);
-		Dual_Socket(&chi);
+    Print_Information_Processor ();
+
+	Test_Or_Make_MSR_DEVICE_FILES ();
+
+
+ 	struct cpu_heirarchy_info chi;
+	struct cpu_socket_info socket_0={.max_cpu=0, .socket_num=0, .processor_num={-1,-1,-1,-1,-1,-1,-1,-1}};
+	struct cpu_socket_info socket_1={.max_cpu=0, .socket_num=1, .processor_num={-1,-1,-1,-1,-1,-1,-1,-1}};
+
+	construct_CPU_Heirarchy_info(&chi);
+	construct_sibling_list(&chi);
+    print_CPU_Heirarchy(chi);
+	construct_socket_information(&chi, &socket_0, &socket_1);
+	print_socket_information(&socket_0);
+    print_socket_information(&socket_1);
+
+	if(socket_0.max_cpu>0 && socket_1.max_cpu>0){	
+	    printf("i7z DEBUG: Dual Socket Detected\n");
+		Dual_Socket();
+	}else{	
+	    printf("i7z DEBUG: Single Socket Detected\n");
+		Single_Socket();
 	}
 	return(1);
 }

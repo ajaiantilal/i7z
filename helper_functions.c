@@ -426,198 +426,179 @@ double cpufreq_info()
 	  return atof(tmp_str);
 }
 
-int get_number_of_present_cpu()
+
+
+#include "stdio.h"
+#include "string.h"
+#include "stdlib.h"
+#define MAX_PROCESSORS  32
+
+int check_and_return_processor(char*strinfo)
 {
-    FILE *fp;
-    char tmp_str[200];
-    char command_str[200];
-    sprintf(command_str,"cat /sys/devices/system/cpu/present > /tmp/CPUspresent.txt");
-    system(command_str);
-    fp = fopen("/tmp/CPUspresent.txt","r");
-    fgets (tmp_str, 200, fp);
-    //printf("%s\n",tmp_str);
-    char* cpu_present = strtok(tmp_str,",");
-    int start_core, end_core;
-    sscanf(cpu_present,"%d-%d", &start_core, &end_core);
-    //printf("%d --- %d\n", start_core, end_core);
-    fclose(fp);
-    return(end_core+1);
-}
-
-void get_online_cpus(struct cpu_heirarchy_info* chi)
-{
-    FILE *fp;
-    int i;
-    char tmp_str[200];
-    char command_string[200];
-    sprintf(command_string,"cat /sys/devices/system/cpu/online > /tmp/CPUspresent.txt");
-
-    system(command_string);
-    fp = fopen("/tmp/CPUspresent.txt","r");
-    fgets (tmp_str, 200, fp);
-    fclose (fp);
-    
-    char* cpu_present;
-    cpu_present = strtok(tmp_str,",");
-    int start_core, end_core;
-
-	chi->max_online_cpu=0;
-    while(cpu_present != NULL){
-        //int num_cores = atoi (tmp_str);
-        //printf("number of Cores present %s\n",cpu_present);
-        sscanf(cpu_present,"%d-%d", &start_core, &end_core);
-        for (i=start_core;i<=end_core;i++){
-    	    chi->core_state[i]=1;
-			chi->max_online_cpu++;
-		}
-        //printf("%d --- %d\n", start_core, end_core);
-        cpu_present = strtok(NULL, ",");
-    }
-}
-
-void get_siblings_list(struct cpu_heirarchy_info* chi)
-{
-	int i;
-	int	sib_1, sib_2;
-	FILE *fp;
-	char command_string[200];
-	char tmp_str[200], *sib_list;
-	sprintf(command_string,"cat /sys/devices/system/cpu/cpu*/topology/thread_siblings_list > /tmp/SIBLINGSlist.txt");
-
-	system(command_string);
-	fp = fopen("/tmp/SIBLINGSlist.txt","r");
-
-
-	for(i=0; i < chi->max_online_cpu ; i++){
-   		fgets(tmp_str, 200, fp);
-//		printf("%s\n",tmp_str);
-	    sib_list = strtok(tmp_str,",");
-		
-		sib_1 = atoi(sib_list);
-		sib_2 = sib_1;
-		while(sib_list != NULL){
-			sib_list = strtok(NULL,",");
-			if (sib_list != NULL)
-				sib_2 = atoi(sib_list);
-		}
-//	    printf("-%d, %d\n", sib_1, sib_2);
-		chi->sibling_num[sib_1] = sib_2;
-		chi->sibling_num[sib_2] = sib_1;
+	char *t1;
+	if (strstr(strinfo,"processor") !=NULL){
+		strtok(strinfo,":");
+		t1 = strtok(NULL, " ");
+		return(atoi(t1));
+	}else{
+		return(-1);
 	}
-	fclose(fp);
 }
 
-void get_package_ids(struct cpu_heirarchy_info* chi)
+int check_and_return_physical_id(char*strinfo)
 {
-	int i;
-	FILE *fp;
-	char command_string[200];
-	char tmp_str[200];
-
-	chi->num_sockets=0;
-	for(i=0; i < chi->max_present_cpu ; i++){
-		if(chi->core_state[i]==1){
-			sprintf(command_string,"cat /sys/devices/system/cpu/cpu%d/topology/physical_package_id > /tmp/cpu_phy_id.txt",i);
-			system(command_string);
-		    fp = fopen("/tmp/cpu_phy_id.txt","r");
-		    fgets (tmp_str, 200, fp);
-			chi->package_num[i] = atoi(tmp_str);
-			if (chi->num_sockets < chi->package_num[i])
-				chi->num_sockets = chi->package_num[i];
-		}
+	char *t1;
+	if (strstr(strinfo,"physical id") !=NULL){
+		strtok(strinfo,":");
+		t1 = strtok(NULL, " ");
+		return(atoi(t1));
+	}else{
+		return(-1);
 	}
-	chi->num_sockets = chi->num_sockets+1;
-	fclose(fp);
 }
 
-/*void get_candidate_cores(struct cpu_heirarchy_info* chi)
+int check_and_return_core_id(char*strinfo)
 {
-	int i;
-	char tmp_str[200];
-	for(i=0; i < chi->max_present_cpu ; i++){	
-			chi->candidate_cores[i]=-1;
-			sprintf(tmp_str,"/dev/cpu/%d/msr",i);
-			if (access (tmp_str, F_OK) == 0){
-				chi->candidate_cores[i]=1;
-			}
+	char *t1;
+	if (strstr(strinfo,"core id") !=NULL){
+		strtok(strinfo,":");
+		t1 = strtok(NULL, " ");
+		return(atoi(t1));
+	}else{
+		return(-1);
 	}
-}*/
-
-void get_candidate_cores(struct cpu_heirarchy_info* chi)
-{
-	int i;
-	for(i=0; i < chi->max_present_cpu ; i++){
-		if (chi->core_state[i]==1)
-            //Browse the core list and put -1 to siblings and +1 to the core id
-			//do it only if it is not preset i.e do only if it was 0
-			if (chi->candidate_cores[i] == 0 ){
-				if (chi->sibling_num[i] != i ){ //the sibling of this core is online
-					chi->candidate_cores[chi->sibling_num[i]]=-1;
-					chi->candidate_cores[i]=1;
-				}else{ // the sibling of the core is offline and thus the sibling of the core is core itself
-					   // in that case just set it to 1 and leave
-					chi->candidate_cores[i]=1;
-				}
-			}
-	}	
 }
 
-void print_cpu_list(struct cpu_heirarchy_info chi)
+void construct_sibling_list(struct cpu_heirarchy_info* chi)
 {
-    int i;
-    for( i=0; i<chi.max_present_cpu; i++){
-		if(chi.core_state[i]==0){
-		    printf("CPU %d: offline, Package %d\n", i, chi.package_num[i]);
-		}else if(chi.core_state[i]==1){
-			if (i==chi.sibling_num[i]){
-				printf("CPU %d: online, Package %d, [%d],  sibling offline\n", i, chi.package_num[i], chi.candidate_cores[i]);				
-			}else{
-				printf("CPU %d: online, Package %d, [%d],  sibling %d\n", i, chi.package_num[i], chi.candidate_cores[i], chi.sibling_num[i]);
+	int i,j,core_id,socket_id;
+	for(i=0;i< chi->max_online_cpu ;i++)  
+		chi->sibling_num[i]=-1;
+
+	chi->HT=false;
+	for(i=0;i< chi->max_online_cpu ;i++){
+		core_id = chi->coreid_num[i];
+		socket_id = chi->package_num[i];
+		for(j=i+1;j< chi->max_online_cpu ;j++){
+			if (chi->coreid_num[j] == core_id && chi->package_num[j] == socket_id){
+				chi->sibling_num[j] = i;
+				chi->sibling_num[i] = j;
+				chi->display_cores[i] = 1;
+				chi->display_cores[j] = -1;
+				chi->HT=true;
+				continue;
 			}
 		}
-    }
+	}		
+	//for cores that donot have a sibling put in 1
+	for(i=0;i< chi->max_online_cpu ;i++){
+		if(chi->sibling_num[i] ==-1)
+			chi->display_cores[i] = 1;
+	}
 }
 
-
-
-void construct_cpu_hierarchy(struct cpu_heirarchy_info *chi)
-{ 
-
-  chi->max_present_cpu = get_number_of_present_cpu();
-  chi->core_state  = (int*)calloc(chi->max_present_cpu,sizeof(int));
-  chi->package_num = (int*)calloc(chi->max_present_cpu,sizeof(int));
-  chi->sibling_num = (int*)calloc(chi->max_present_cpu,sizeof(int));
-  chi->candidate_cores = (int*)calloc(chi->max_present_cpu,sizeof(int));
-
-  get_online_cpus(chi);
-  get_siblings_list(chi);
-  get_package_ids(chi);
-  get_candidate_cores(chi);
-
-  //printf("Number of CPU Sockets %d\n", chi->num_sockets);
-  //printf("Number of CPU present %d\n", chi->max_present_cpu);
-  //printf("Number of CPU online  %d\n", chi->max_online_cpu);
-
-}
-
-void from_cpu_heirarchy_info_get_information_about_socket_cores(struct cpu_heirarchy_info *chi, int socket_num, int* core_array,
-	int* core_arraysize_phy, int* core_arraysize_log)
+void construct_socket_information(struct cpu_heirarchy_info* chi,struct cpu_socket_info* socket_0,struct cpu_socket_info* socket_1)
 {
-	int i,j,jj;
-	j=0,jj=0;
+	int i;
+
+	socket_0->max_cpu=0;
+	socket_0->num_physical_cores=0;
+	socket_0->num_logical_cores=0;
+	socket_1->max_cpu=0;
+	socket_1->num_physical_cores=0;
+	socket_1->num_logical_cores=0;
+
+
+	for(i=0;i< chi->max_online_cpu ;i++){
+		if(chi->display_cores[i]!=-1){
+			if(chi->package_num[i]==0){
+				socket_0->processor_num[socket_0->max_cpu]=chi->processor_num[i];
+				socket_0->max_cpu++;
+				socket_0->num_physical_cores++;
+				socket_0->num_logical_cores++;
+			}
+			if(chi->package_num[i]==1){
+				socket_1->processor_num[socket_1->max_cpu]=chi->processor_num[i];
+				socket_1->max_cpu++;
+				socket_1->num_physical_cores++;
+				socket_1->num_logical_cores++;
+			}
+		}else{
+			if(chi->package_num[i]==0){
+				socket_0->num_logical_cores++;
+			}
+			if(chi->package_num[i]==1){
+				socket_1->num_logical_cores++;
+			}
+		}
+	}
+}
+
+void print_socket_information(struct cpu_socket_info* socket)
+{
+	int i;
+	char socket_list[200]="";
+
+	for(i=0;i< socket->max_cpu ;i++){
+		if(socket->processor_num[i]!=-1){
+			sprintf(socket_list,"%s%d,",socket_list,socket->processor_num[i]);
+		}
+	}
+//	printf("Socket-%d [num of cpus %d physical %d logical %d] %s\n",socket->socket_num,socket->max_cpu,socket->num_physical_cores,socket->num_logical_cores,socket_list);
+}
+
+void construct_CPU_Heirarchy_info(struct cpu_heirarchy_info* chi)
+{
+	FILE *fp = fopen("/proc/cpuinfo","r");
+	char strinfo[200];
 	
-	for(i=0;i<8;i++)
-		core_array[i]=-1;
+	int processor_num, physicalid_num, coreid_num;
+	int it_processor_num=-1, it_physicalid_num=-1, it_coreid_num=-1;
+	int tmp_processor_num, tmp_physicalid_num, tmp_coreid_num;
+	int old_processor_num=-1;
+	
+    
+	if(fp!=NULL){
+		while( fgets(strinfo,200,fp) != NULL){
+	//		printf(strinfo);
+			tmp_processor_num = check_and_return_processor(strinfo);
+			tmp_physicalid_num = check_and_return_physical_id(strinfo);
+			tmp_coreid_num = check_and_return_core_id(strinfo);
+			
+					
+			if(tmp_processor_num != -1){
+				it_processor_num++;
+				processor_num = tmp_processor_num;
+				chi->processor_num[it_processor_num] = processor_num;
+			}
+			if(tmp_physicalid_num != -1){
+				it_physicalid_num++;
+				physicalid_num = tmp_physicalid_num;				
+				chi->package_num[it_physicalid_num] = physicalid_num;
+			}
+			if(tmp_coreid_num != -1){
+				it_coreid_num++;
+				coreid_num = tmp_coreid_num;
+				chi->coreid_num[it_coreid_num] = coreid_num;
+			}
+			if(processor_num != old_processor_num){	
+				old_processor_num = processor_num;
+			}	
+		}
+	}
+	chi->max_online_cpu = it_processor_num+1;
 
-	for (i=0; i < chi->max_present_cpu ; i++){
-		if(chi->package_num[i] == socket_num && chi->candidate_cores[i]==1 ){
-			core_array[j++] = i;
-		}		
-		if(chi->package_num[i] == socket_num ){
-			jj++;
-		}		
- 	}	
-	*core_arraysize_phy = j;
-	*core_arraysize_log = jj;
+}
+
+void print_CPU_Heirarchy(struct cpu_heirarchy_info chi)
+{
+	int i;
+	printf("\n------------------------------\n--[core id]--- Other information\n-------------------------------------\n");
+	for (i=0;i < chi.max_online_cpu;i++){
+		printf("--[%d] Processor number %d\n",i,chi.processor_num[i]);
+		printf("--[%d] Socket number/Sibling number  %d,%d\n",i,chi.package_num[i],chi.sibling_num[i]);
+		printf("--[%d] Core id number %d\n",i,chi.coreid_num[i]);
+		printf("--[%d] Display core %d\n\n",i,chi.display_cores[i]);
+	}
 }
 

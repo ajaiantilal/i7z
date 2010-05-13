@@ -10,16 +10,31 @@
 //structure to store the information about the processor
 #define proccpuinfo "/proc/cpuinfo"
 
+#ifndef bool
+#define bool int
+#endif
+#define false 0
+#define true 1
+
+
 struct cpu_heirarchy_info{
-    int max_present_cpu;
     int max_online_cpu;
 	int num_sockets;
-    int* core_state;
-    int* package_num;
-    int* sibling_num;
-	int* candidate_cores; //cores to use to get the information
+    int sibling_num[32];
+	int processor_num[32];
+    int package_num[32];
+    int coreid_num[32];
+	int display_cores[32];
+	bool HT;
 };
 
+struct cpu_socket_info{
+	int max_cpu;
+	int socket_num;
+	int processor_num[8];
+	int num_physical_cores;
+	int num_logical_cores;
+};
 
 struct family_info
 {
@@ -79,8 +94,7 @@ uint64_t set_msr_value (int cpu, uint32_t reg, uint64_t data);
 void get_CPUs_info (unsigned int *num_Logical_OS,
 		    unsigned int *num_Logical_process,
 		    unsigned int *num_Processor_Core,
-		    
-unsigned int *num_Physical_Socket);
+		    unsigned int *num_Physical_Socket);
 
 #endif
 
@@ -94,7 +108,18 @@ void construct_cpu_hierarchy(struct cpu_heirarchy_info *chi);
 void Print_Information_Processor();
 void Test_Or_Make_MSR_DEVICE_FILES();
 
+
+int check_and_return_processor(char*strinfo);
+int check_and_return_physical_id(char*strinfo);
+void construct_sibling_list(struct cpu_heirarchy_info* chi);
+void construct_socket_information(struct cpu_heirarchy_info* chi,struct cpu_socket_info* socket_0,struct cpu_socket_info* socket_1);
+void print_socket_information(struct cpu_socket_info* socket);
+void construct_CPU_Heirarchy_info(struct cpu_heirarchy_info* chi);
+void print_CPU_Heirarchy(struct cpu_heirarchy_info chi);
+
+
 #define SET_ONLINE_ARRAY_MINUS1(online_cpus) {for(i=0;i<8;i++) online_cpus[i]=-1;}
 #define SET_ONLINE_ARRAY_PLUS1(online_cpus) {for(i=0;i<8;i++) online_cpus[i]=1;}
 #define SET_IF_TRUE(error_indx,a,b) if(error_indx) a=b;
 #define CONTINUE_IF_TRUE(cond) if(cond) continue;
+#define RETURN_IF_TRUE(cond) if(cond) return;
