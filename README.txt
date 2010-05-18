@@ -28,6 +28,9 @@ Installation
     
 
 Version and Bug History:
+v svn-36 (18/May/2010)
+	Fixed a bug with printing the Multiplier Line when only 1 core was enabled.
+	
 v svn-31 (17/May/2010)
 	Supports Dual sockets. Allows for on the fly disabling/enabling of cores without
 	crashing.

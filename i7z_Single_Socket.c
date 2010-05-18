@@ -196,17 +196,22 @@ void print_i7z_socket_single(struct cpu_socket_info socket_0, int printw_offset,
 
 			  mvprintw (4 + printw_offset, 0,"  CPU Multiplier %dx || Bus clock frequency (BCLK) %0.2f MHz \n",	CPU_Multiplier, BLCK);
 
-			  if (numCPUs >= 2 && numCPUs < 4)
+			  if (numCPUs <= 0)
+			  {
+				sprintf (string_ptr1, "  Max TURBO Multiplier (if Enabled) with 0 cores is");
+				sprintf (string_ptr2, " %dx/%dx ", MAX_TURBO_1C, MAX_TURBO_2C);
+			  }
+			  if (numCPUs >= 1 && numCPUs < 4)
 			  {
 				sprintf (string_ptr1, "  Max TURBO Multiplier (if Enabled) with 1/2 Cores is");
-				sprintf (string_ptr2, " %dx/%dx ", MAX_TURBO_1C, MAX_TURBO_2C);
+				sprintf (string_ptr2, "  ");
 			  }
 			  if (numCPUs >= 2 && numCPUs < 6)
 			  {
 				sprintf (string_ptr1, "  Max TURBO Multiplier (if Enabled) with 1/2/3/4 Cores is");
 				sprintf (string_ptr2, " %dx/%dx/%dx/%dx ", MAX_TURBO_1C, MAX_TURBO_2C, MAX_TURBO_3C, MAX_TURBO_4C);
 			  }
-			  if (numCPUs >= 2 && numCPUs >= 6)	// Gulftown 6-cores
+			  if (numCPUs >= 2 && numCPUs >= 6)	// Gulftown 6-cores, Nehalem-EX
 			  {
 				sprintf (string_ptr1, "  Max TURBO Multiplier (if Enabled) with 1/2/3/4/5/6 Cores is");
 				sprintf (string_ptr2, " %dx/%dx/%dx/%dx/%dx/%dx ", MAX_TURBO_1C, MAX_TURBO_2C, MAX_TURBO_3C, MAX_TURBO_4C,
