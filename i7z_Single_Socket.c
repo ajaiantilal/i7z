@@ -1,3 +1,11 @@
+//i7z_Single_Socket.c
+/* ----------------------------------------------------------------------- *
+ *   
+ *   Copyright 2010 Abhishek Jaiantilal
+ *
+ *   Under GPL v2
+ *
+ * ----------------------------------------------------------------------- */
 #include <memory.h>
 #include <errno.h>
 #include <stdio.h>

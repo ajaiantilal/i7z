@@ -293,6 +293,16 @@ unsigned int *num_Physical_Socket);
 
 #endif
 
+
+//Below code
+/* ----------------------------------------------------------------------- *
+ *   
+ *   Copyright 2010 Abhishek Jaiantilal
+ *
+ *   Under GPL v2
+ *
+ * ----------------------------------------------------------------------- */
+
 void Print_Information_Processor(){
 	struct family_info proc_info;
 
@@ -426,11 +436,6 @@ double cpufreq_info()
 	  return atof(tmp_str);
 }
 
-
-
-#include "stdio.h"
-#include "string.h"
-#include "stdlib.h"
 #define MAX_PROCESSORS  32
 
 int check_and_return_processor(char*strinfo)
