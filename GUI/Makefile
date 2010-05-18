@@ -73,7 +73,7 @@ DIST          = /usr/share/qt4/mkspecs/common/g++.conf \
 		GUI.pro
 QMAKE_TARGET  = GUI
 DESTDIR       = 
-TARGET        = GUI
+TARGET        = i7z_GUI
 
 first: all
 ####### Implicit rules

@@ -602,3 +602,16 @@ void print_CPU_Heirarchy(struct cpu_heirarchy_info chi)
 	}
 }
 
+int in_core_list(int ii,int* core_list)
+{
+	int i;
+	int in=0;
+	for(i=0;i<8;i++){
+		if(ii == core_list[i]){
+			in=1;
+			break;
+		}
+	}
+	return(in);
+}
+

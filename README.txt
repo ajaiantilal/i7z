@@ -1,10 +1,9 @@
 license: My code is GPLv2
-Current Version: v0.21-4 (22/Feb/2010)
+Current Version: svn-31 (17/May/2010)
 
 Compiling:
 32/64-bit linux:
-  make 
-  
+  make   
   
 Running:
   sudo ./i7z
@@ -29,6 +28,10 @@ Installation
     
 
 Version and Bug History:
+v svn-31 (17/May/2010)
+	Supports Dual sockets. Allows for on the fly disabling/enabling of cores without
+	crashing.
+
 v0.21-4 (22/Feb/2010)
     No bugs fixed, except better documentation of the code and fixing on the Makefiles,
     c/header files and better loading/checking of msr    

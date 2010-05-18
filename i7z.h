@@ -116,10 +116,20 @@ void construct_socket_information(struct cpu_heirarchy_info* chi,struct cpu_sock
 void print_socket_information(struct cpu_socket_info* socket);
 void construct_CPU_Heirarchy_info(struct cpu_heirarchy_info* chi);
 void print_CPU_Heirarchy(struct cpu_heirarchy_info chi);
+int in_core_list(int ii,int* core_list);
 
 
-#define SET_ONLINE_ARRAY_MINUS1(online_cpus) {for(i=0;i<8;i++) online_cpus[i]=-1;}
-#define SET_ONLINE_ARRAY_PLUS1(online_cpus) {for(i=0;i<8;i++) online_cpus[i]=1;}
+#define SET_ONLINE_ARRAY_MINUS1(online_cpus) {for(i=0;i<32;i++) online_cpus[i]=-1;}
+#define SET_ONLINE_ARRAY_PLUS1(online_cpus) {for(i=0;i<32;i++) online_cpus[i]=1;}
+
 #define SET_IF_TRUE(error_indx,a,b) if(error_indx) a=b;
 #define CONTINUE_IF_TRUE(cond) if(cond) continue;
 #define RETURN_IF_TRUE(cond) if(cond) return;
+
+//due to the fact that sometimes 100.0>100,  the below macro checks till 101
+#define THRESHOLD_BETWEEN_0_100(cond) (cond>=0 && cond <=101)? cond: __builtin_inf()
+
+//due to the fact that sometimes 100.0>100,  the below macro checks till 101
+#define IS_THIS_BETWEEN_0_100(cond) (cond>=0 && cond <=101 && !isinf(cond) && !isnan(cond))? 1: 0
+
+#define THRESHOLD_BETWEEN_0_6000(cond) (cond>=0 && cond <=6000)? cond: __builtin_inf()

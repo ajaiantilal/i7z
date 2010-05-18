@@ -38,7 +38,10 @@ SRC	= i7z.c helper_functions.c i7z_Single_Socket.c i7z_Dual_Socket.c
 
 sbindir = /usr/sbin
 
-all: bin
+all: message bin
+
+message:
+	@echo "If the compilation complains about not finding ncurses.h, install ncurses (libncurses5-dev on ubuntu/debian)"
 
 bin:
 	$(CC) $(CFLAGS) $(LDFLAGS) $(INCLUDEFLAGS) $(SRC) -o $(BIN)

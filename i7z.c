@@ -50,9 +50,11 @@ int main ()
     print_socket_information(&socket_1);
 
 	if(socket_0.max_cpu>0 && socket_1.max_cpu>0){	
+		//Path for Dual Socket Code
 	    printf("i7z DEBUG: Dual Socket Detected\n");
 		Dual_Socket();
 	}else{	
+		//Path for Single Socket Code
 	    printf("i7z DEBUG: Single Socket Detected\n");
 		Single_Socket();
 	}

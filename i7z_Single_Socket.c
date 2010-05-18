@@ -9,6 +9,7 @@
 #include <sys/types.h>
 #include <sys/time.h>
 #include <time.h>
+#include <math.h>
 #include <ncurses.h>
 #include "i7z.h"
 
@@ -24,7 +25,7 @@ void print_i7z_socket_single(struct cpu_socket_info socket_0, int printw_offset,
 	char* HT_ON_str, int* kk_1, U_L_L_I * old_val_CORE, U_L_L_I * old_val_REF, U_L_L_I * old_val_C3, U_L_L_I * old_val_C6,
     U_L_L_I * old_TSC, int estimated_mhz,  U_L_L_I * new_val_CORE,  U_L_L_I * new_val_REF,  U_L_L_I * new_val_C3,
     U_L_L_I * new_val_C6,  U_L_L_I * new_TSC,  double* _FREQ, double* _MULT, long double * C0_time, long double * C1_time,
-	long double * C3_time,	long double * C6_time, struct timeval* tvstart, struct timeval* tvstop);
+	long double * C3_time,	long double * C6_time, struct timeval* tvstart, struct timeval* tvstop, int *max_observed_cpu);
 
 void print_i7z_single ();
 
@@ -55,7 +56,7 @@ void print_i7z_socket_single(struct cpu_socket_info socket_0, int printw_offset,
 	char* HT_ON_str, int* kk_1, U_L_L_I * old_val_CORE, U_L_L_I * old_val_REF, U_L_L_I * old_val_C3, U_L_L_I * old_val_C6,
     U_L_L_I * old_TSC, int estimated_mhz,  U_L_L_I * new_val_CORE,  U_L_L_I * new_val_REF,  U_L_L_I * new_val_C3,
     U_L_L_I * new_val_C6,  U_L_L_I * new_TSC,  double* _FREQ, double* _MULT, long double * C0_time, long double * C1_time,
-	long double * C3_time,	long double * C6_time, struct timeval* tvstart, struct timeval* tvstop)
+	long double * C3_time,	long double * C6_time, struct timeval* tvstart, struct timeval* tvstop, int *max_observed_cpu)
 {
 	  //Print a slew of information on the ncurses window
 	  mvprintw (0, 0, "Cpu speed from cpuinfo %0.2fMhz\n", cpu_freq_cpuinfo);
@@ -70,6 +71,7 @@ void print_i7z_socket_single(struct cpu_socket_info socket_0, int printw_offset,
 			cpu_freq_cpuinfo);
 
 	int i, ii;
+	//int k;
 	int CPU_NUM;
 	int* core_list;
     unsigned long int IA32_MPERF, IA32_APERF;
@@ -77,14 +79,24 @@ void print_i7z_socket_single(struct cpu_socket_info socket_0, int printw_offset,
     unsigned long long int CPU_CLK_UNHALTED_CORE, CPU_CLK_UNHALTED_REF, CPU_CLK_C3, CPU_CLK_C6, CPU_CLK_C1;
     //current blck value
 	float BLCK;
+	
+	char print_core[32];
 
+	//use this variable to monitor the max number of cores ever online
+	*max_observed_cpu = (socket_0.max_cpu > *max_observed_cpu)? socket_0.max_cpu: *max_observed_cpu;
 
 	int core_list_size_phy,	core_list_size_log;
 		  if (socket_0.max_cpu > 0){
+			  //set the variable print_core to 0, use it to check if a core is online and doesnt
+			  //have any garbage values
+			  memset(print_core, 0, 6*sizeof(char));
+			  
 			  //We just need one CPU (we use Core-1) to figure out the multiplier and the bus clock freq.
 			  //multiplier doesnt automatically include turbo
 			  //note turbo is not guaranteed, only promised
 			  //So this msr will only reflect the actual multiplier, rest has to be figured out
+
+			  //Now get all the information about the socket from the structure
 			  CPU_NUM = socket_0.processor_num[0];
 			  core_list = socket_0.processor_num;
 			  core_list_size_phy = socket_0.num_physical_cores; 
@@ -164,6 +176,7 @@ void print_i7z_socket_single(struct cpu_socket_info socket_0, int printw_offset,
 			  SET_IF_TRUE(error_indx,online_cpus[0],-1);
 			  RETURN_IF_TRUE(online_cpus[0]==-1);
 
+			  //SLEEP FOR 1 SECOND (500ms is also alright)
 			  nanosleep (&one_second_sleep, NULL);
 			  IA32_MPERF = get_msr_value (CPU_NUM, 231, 7, 0, &error_indx) - IA32_MPERF;
 			  SET_IF_TRUE(error_indx,online_cpus[0],-1);
@@ -177,17 +190,17 @@ void print_i7z_socket_single(struct cpu_socket_info socket_0, int printw_offset,
 
 			  if (numCPUs >= 2 && numCPUs < 4)
 			  {
-				sprintf (string_ptr1, "  Max TURBO (if Enabled) with 1/2 Cores");
+				sprintf (string_ptr1, "  Max TURBO Multiplier (if Enabled) with 1/2 Cores is");
 				sprintf (string_ptr2, " %dx/%dx ", MAX_TURBO_1C, MAX_TURBO_2C);
 			  }
 			  if (numCPUs >= 2 && numCPUs < 6)
 			  {
-				sprintf (string_ptr1, "  Max TURBO (if Enabled) with 1/2/3/4 Cores");
+				sprintf (string_ptr1, "  Max TURBO Multiplier (if Enabled) with 1/2/3/4 Cores is");
 				sprintf (string_ptr2, " %dx/%dx/%dx/%dx ", MAX_TURBO_1C, MAX_TURBO_2C, MAX_TURBO_3C, MAX_TURBO_4C);
 			  }
 			  if (numCPUs >= 2 && numCPUs >= 6)	// Gulftown 6-cores
 			  {
-				sprintf (string_ptr1, "  Max TURBO (if Enabled) with 1/2/3/4/5/6 Cores");
+				sprintf (string_ptr1, "  Max TURBO Multiplier (if Enabled) with 1/2/3/4/5/6 Cores is");
 				sprintf (string_ptr2, " %dx/%dx/%dx/%dx/%dx/%dx ", MAX_TURBO_1C, MAX_TURBO_2C, MAX_TURBO_3C, MAX_TURBO_4C,
 							   MAX_TURBO_5C, MAX_TURBO_6C);
 			  }
@@ -199,14 +212,16 @@ void print_i7z_socket_single(struct cpu_socket_info socket_0, int printw_offset,
 				  mvprintw (21, 0, "C3 = Cores running with PLL turned off and core cache turned off");
 				  mvprintw (22, 0, "C6 = Everything in C3 + core state saved to last level cache");
 				  mvprintw (23, 0, "  Above values in table are in percentage over the last 1 sec");
-				  mvprintw (24, 0, " Total Logical Cores: [%d], Total Physical Cores: [%d] \n",	numLogicalCores, numPhysicalCores);
-				  mvprintw (25, 0, "  Ctrl+C to exit");
+				  mvprintw (24, 0, "Total Logical Cores: [%d], Total Physical Cores: [%d] \n",	numLogicalCores, numPhysicalCores);
+	   		      mvprintw (25, 0, "[core-id] refers to core-id number in /proc/cpuinfo");
+	 		      mvprintw (26, 0, "'Garbage Values' message printed when garbage values are read");
+				  mvprintw (27, 0, "  Ctrl+C to exit");
 			  }
 
 			  numCPUs = core_list_size_phy;
 			  numPhysicalCores = core_list_size_phy;
 			  numLogicalCores = core_list_size_log;
-			  mvprintw (6 + printw_offset, 0, "Socket [%d] - [physical cores=%d, logical cores=%d] \n", socket_0.socket_num, numPhysicalCores, numLogicalCores);
+			  mvprintw (6 + printw_offset, 0, "Socket [%d] - [physical cores=%d, logical cores=%d, max online cores ever=%d] \n", socket_0.socket_num, numPhysicalCores, numLogicalCores,*max_observed_cpu);
 
 			  mvprintw (9 + printw_offset, 0, "%s %s\n", string_ptr1, string_ptr2);
 
@@ -223,10 +238,12 @@ void print_i7z_socket_single(struct cpu_socket_info socket_0, int printw_offset,
 				mvprintw (8 + printw_offset, 0,	"  True Frequency %0.2f MHz (%0.2f x [%d]) \n", TRUE_CPU_FREQ, BLCK, CPU_Multiplier);
 			  }
 
+			  //Primarily for 32-bit users, found that after sometimes the counters loopback, so inorder
+			  //to prevent loopback, reset the counters back to 0 after 10 iterations roughly 10 secs
 			  if (*kk_1 > 10)
 			  {
 				  *kk_1 = 0;
-				  for (i = 0; i < numCPUs; i++)
+				  for (i = 0; i <  numCPUs; i++)
 					{
 					  //Set up the performance counters and then start reading from them
 					  CPU_NUM = core_list[i];
@@ -272,10 +289,12 @@ void print_i7z_socket_single(struct cpu_socket_info socket_0, int printw_offset,
 			  }
 			  (*kk_1)++;
 			  nanosleep (&one_second_sleep, NULL);
-			  mvprintw (11 + printw_offset, 0, "\tProcessor [core-id]  :Actual Freq (Mult.)\t  C0%%   Halt(C1)%%  C3 %%   C6 %%\n");
+			  mvprintw (11 + printw_offset, 0, "\tCore [core-id]  :Actual Freq (Mult.)\t  C0%%   Halt(C1)%%  C3 %%   C6 %%\n");
 
+			  //estimate the CPU speed
 			  estimated_mhz = estimate_MHz ();
-			  for (i = 0; i < numCPUs; i++)
+
+			  for (i = 0; i <  numCPUs; i++)
 			  {
 				  //read from the performance counters
 				  //things like halted unhalted core cycles
@@ -337,8 +356,8 @@ void print_i7z_socket_single(struct cpu_socket_info socket_0, int printw_offset,
 				  }
 
 				  _FREQ[ii] =
-					estimated_mhz * ((long double) CPU_CLK_UNHALTED_CORE /
-							   (long double) CPU_CLK_UNHALTED_REF);
+					THRESHOLD_BETWEEN_0_6000(estimated_mhz * ((long double) CPU_CLK_UNHALTED_CORE /
+							   (long double) CPU_CLK_UNHALTED_REF));
 				  _MULT[ii] = _FREQ[ii] / BLCK;
 
 				  C0_time[ii] = ((long double) CPU_CLK_UNHALTED_REF /
@@ -387,22 +406,59 @@ void print_i7z_socket_single(struct cpu_socket_info socket_0, int printw_offset,
 					}
 				  }
 				}
-
-			  for (ii = 0; ii < numCPUs; ii++)
+			 
+			  //CHECK IF ALL COUNTERS ARE CORRECT AND NO GARBAGE VALUES ARE PRESENT
+	          //If there is any garbage values set print_core[i] to 0
+			  for (ii = 0; ii <  numCPUs; ii++)
+			  {
+					i = core_list[ii];
+					if( !IS_THIS_BETWEEN_0_100(C0_time[i] * 100) ||
+					   !IS_THIS_BETWEEN_0_100(C1_time[i] * 100 - (C3_time[i] + C6_time[i]) * 100) ||
+	  				   !IS_THIS_BETWEEN_0_100(C3_time[i] * 100) || 
+					   !IS_THIS_BETWEEN_0_100(C6_time[i] * 100) ||
+					   isinf(_FREQ[i]) )
+							print_core[ii]=0;	
+					else				
+							print_core[ii]=1;				
+			  }	
+	
+			  //Now print the information about the cores. Print garbage values message if there is garbage
+			  for (ii = 0; ii <  numCPUs; ii++)
 			  {
 				i = core_list[ii];
-				if(online_cpus[ii]==-1){
-					mvprintw (12 + ii + printw_offset, 0, "\tProcessor %d:  OFFLINE\n",ii + 1);
-				}else{
-					mvprintw (12 + ii + printw_offset, 0, "\tProcessor %d [%d]:\t  %0.2f (%.2fx)\t%4.3Lg\t%4.3Lg\t%4.3Lg\t%4.3Lg\n", ii + 1, core_list[ii], _FREQ[i], _MULT[i], C0_time[i] * 100, C1_time[i] * 100 - (C3_time[i] + C6_time[i]) * 100, C3_time[i] * 100, C6_time[i] * 100);	//C0_time[i]*100+C1_time[i]*100 around 100
-				}
+				if(print_core[ii])				
+					mvprintw (12 + ii + printw_offset, 0, "\tCore %d [%d]:\t  %0.2f (%.2fx)\t%4.3Lg\t%4.3Lg\t%4.3Lg\t%4.3Lg\n", 
+						ii + 1, core_list[ii], _FREQ[i], _MULT[i], THRESHOLD_BETWEEN_0_100(C0_time[i] * 100),
+						THRESHOLD_BETWEEN_0_100(C1_time[i] * 100 - (C3_time[i] + C6_time[i]) * 100), 
+						THRESHOLD_BETWEEN_0_100(C3_time[i] * 100), THRESHOLD_BETWEEN_0_100(C6_time[i] * 100));	//C0_time[i]*100+C1_time[i]*100 around 100				
+				else
+					mvprintw (12 + ii + printw_offset, 0, "\tCore %d [%d]:\t  Garbage Values\n", ii + 1, core_list[ii]);
 			  }
-			
+
+			  /*k=0;
+			  for (ii = 00; ii < *max_observed_cpu; ii++)
+			  {
+					if (in_core_list(ii,core_list)){
+						continue;
+					}else{
+						mvprintw (12 + k + numCPUs + printw_offset, 0, "\tProcessor %d [%d]:  OFFLINE\n", k + numCPUs + 1, ii);
+					}
+					k++;
+			  }*/
+
+			  //FOR THE REST OF THE CORES (i.e. the offline cores+non-present cores=6 )
+			  //I have space allocated for 6 cores to be printed per socket so from all the present cores
+			  //till 6 print a blank line
+
+			  //for(ii=*max_observed_cpu; ii<6; ii++)
+			  for(ii = numCPUs; ii<6; ii++)
+					mvprintw (12 + ii + printw_offset, 0, "\n");
+						
 			  TRUE_CPU_FREQ = 0;
 			  for (ii = 0; ii < numCPUs; ii++)
 			  {
 				i = core_list[ii];
-				if (_FREQ[i] > TRUE_CPU_FREQ)
+				if ( (_FREQ[i] > TRUE_CPU_FREQ) && (print_core[ii]) && !isinf(_FREQ[i]) )
 				{
 				  TRUE_CPU_FREQ = _FREQ[i];
 				}
@@ -505,6 +561,10 @@ void print_i7z_single ()
 
 	  double estimated_mhz=0;
 	  int socket_num;
+
+      //below variables stores how many cpus were observed till date for the socket
+	  int max_cpus_observed;
+
 	  for (;;)
 	  {
 		  construct_CPU_Heirarchy_info(&chi);
@@ -536,7 +596,7 @@ void print_i7z_single ()
 				old_val_REF[socket_num], old_val_C3[socket_num], old_val_C6[socket_num],
  				old_TSC[socket_num], estimated_mhz, new_val_CORE[socket_num], new_val_REF[socket_num], new_val_C3[socket_num], 
 				new_val_C6[socket_num], new_TSC[socket_num], _FREQ[socket_num], _MULT[socket_num], C0_time[socket_num], C1_time[socket_num], 
-				C3_time[socket_num], C6_time[socket_num], tvstart[socket_num], tvstop[socket_num]);		  
+				C3_time[socket_num], C6_time[socket_num], tvstart[socket_num], tvstop[socket_num], &max_cpus_observed);		  
 
 	}
 
