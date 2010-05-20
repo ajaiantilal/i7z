@@ -127,9 +127,9 @@ int in_core_list(int ii,int* core_list);
 #define RETURN_IF_TRUE(cond) if(cond) return;
 
 //due to the fact that sometimes 100.0>100,  the below macro checks till 101
-#define THRESHOLD_BETWEEN_0_100(cond) (cond>=0 && cond <=101)? cond: __builtin_inf()
+#define THRESHOLD_BETWEEN_0_100(cond) (cond>=-1 && cond <=101 && !isinf(cond) && !isnan(cond))? cond: __builtin_inf()
 
 //due to the fact that sometimes 100.0>100,  the below macro checks till 101
-#define IS_THIS_BETWEEN_0_100(cond) (cond>=0 && cond <=101 && !isinf(cond) && !isnan(cond))? 1: 0
+#define IS_THIS_BETWEEN_0_100(cond) (cond>=-1 && cond <=101 && !isinf(cond) && !isnan(cond))? 1: 0
 
-#define THRESHOLD_BETWEEN_0_6000(cond) (cond>=0 && cond <=6000)? cond: __builtin_inf()
+#define THRESHOLD_BETWEEN_0_6000(cond) (cond>=0 && cond <=10000)? cond: __builtin_inf()

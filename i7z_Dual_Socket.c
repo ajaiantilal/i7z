@@ -76,7 +76,7 @@ void print_i7z_socket(struct cpu_socket_info socket_0, int printw_offset, int PL
 	*max_observed_cpu = (socket_0.max_cpu > *max_observed_cpu)? socket_0.max_cpu: *max_observed_cpu;
 
 	int core_list_size_phy,	core_list_size_log;
-		  if (socket_0.max_cpu > 0){
+		if (socket_0.max_cpu > 0){
 			  //set the variable print_core to 0, use it to check if a core is online and doesnt
 			  //have any garbage values
 			  memset(print_core, 0, 6*sizeof(char));
@@ -472,8 +472,12 @@ void print_i7z_socket(struct cpu_socket_info socket_0, int printw_offset, int PL
 			  memcpy (old_val_C6, new_val_C6, sizeof (unsigned long int) * numCPUs);
 			  memcpy (tvstart, tvstop, sizeof (struct timeval) * numCPUs);
 			  memcpy (old_TSC, new_TSC, sizeof (unsigned long long int) * numCPUs);
-		}				//ENDOF INFINITE FOR LOOP
-
+		}else{
+			  // If all the cores in the socket go offline, just erase the whole screen
+			  for(ii = 0 ; ii<14; ii++)
+					mvprintw (3 + ii + printw_offset, 0, "\n");
+		}
+		
 }
 
 void print_i7z ()
@@ -551,8 +555,9 @@ void print_i7z ()
 	  int socket_num;
 	
       //below variables stores how many cpus were observed till date for the socket
-	  int max_observed_cpu_socket1, max_observed_cpu_socket2;
+	  int max_observed_cpu_socket1 = 0, max_observed_cpu_socket2 = 0;
 
+	  int k=0;
 	  for (;;)
 	  {
 		  construct_CPU_Heirarchy_info(&chi);
@@ -586,14 +591,29 @@ void print_i7z ()
 				new_val_C6[socket_num], new_TSC[socket_num], _FREQ[socket_num], _MULT[socket_num], C0_time[socket_num], C1_time[socket_num], 
 				C3_time[socket_num], C6_time[socket_num], tvstart[socket_num], tvstop[socket_num], &max_observed_cpu_socket1);		  
 
-		  socket_num=1;
-		  printw_offset=14;
-		  print_i7z_socket(socket_1, printw_offset, PLATFORM_INFO_MSR,  PLATFORM_INFO_MSR_high, PLATFORM_INFO_MSR_low,
-				online_cpus, cpu_freq_cpuinfo, one_second_sleep, TURBO_MODE, HT_ON_str, &kk_2, 
-				old_val_CORE[socket_num], old_val_REF[socket_num], old_val_C3[socket_num], old_val_C6[socket_num],
- 				old_TSC[socket_num], estimated_mhz, new_val_CORE[socket_num], new_val_REF[socket_num], new_val_C3[socket_num], 
-				new_val_C6[socket_num], new_TSC[socket_num],  _FREQ[socket_num], _MULT[socket_num], C0_time[socket_num], C1_time[socket_num],
-				C3_time[socket_num], C6_time[socket_num], tvstart[socket_num], tvstop[socket_num], &max_observed_cpu_socket2);		  
+		  /*
+          // TEST CODE FOR CHECKING DUAL SOCK CODE ON SINGLE SOCKET MACHINE
+		  if(k<30){
+			  socket_num=0;
+			  printw_offset=14;
+			  print_i7z_socket(socket_0, printw_offset, PLATFORM_INFO_MSR,  PLATFORM_INFO_MSR_high, PLATFORM_INFO_MSR_low,
+					online_cpus, cpu_freq_cpuinfo, one_second_sleep, TURBO_MODE, HT_ON_str, &kk_2, 
+					old_val_CORE[socket_num], old_val_REF[socket_num], old_val_C3[socket_num], old_val_C6[socket_num],
+	 				old_TSC[socket_num], estimated_mhz, new_val_CORE[socket_num], new_val_REF[socket_num], new_val_C3[socket_num], 
+					new_val_C6[socket_num], new_TSC[socket_num],  _FREQ[socket_num], _MULT[socket_num], C0_time[socket_num], C1_time[socket_num],
+					C3_time[socket_num], C6_time[socket_num], tvstart[socket_num], tvstop[socket_num], &max_observed_cpu_socket2);		  
+		 }else{*/
+			  socket_num=1;
+			  printw_offset=14;
+			  print_i7z_socket(socket_1, printw_offset, PLATFORM_INFO_MSR,  PLATFORM_INFO_MSR_high, PLATFORM_INFO_MSR_low,
+					online_cpus, cpu_freq_cpuinfo, one_second_sleep, TURBO_MODE, HT_ON_str, &kk_2, 
+					old_val_CORE[socket_num], old_val_REF[socket_num], old_val_C3[socket_num], old_val_C6[socket_num],
+	 				old_TSC[socket_num], estimated_mhz, new_val_CORE[socket_num], new_val_REF[socket_num], new_val_C3[socket_num], 
+					new_val_C6[socket_num], new_TSC[socket_num],  _FREQ[socket_num], _MULT[socket_num], C0_time[socket_num], C1_time[socket_num],
+					C3_time[socket_num], C6_time[socket_num], tvstart[socket_num], tvstop[socket_num], &max_observed_cpu_socket2);		  
+		//}
+		k++;
 	}
+
 
 }

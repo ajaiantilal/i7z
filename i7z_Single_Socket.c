@@ -490,7 +490,13 @@ void print_i7z_socket_single(struct cpu_socket_info socket_0, int printw_offset,
 			  memcpy (old_val_C6, new_val_C6, sizeof (unsigned long int) * numCPUs);
 			  memcpy (tvstart, tvstop, sizeof (struct timeval) * numCPUs);
 			  memcpy (old_TSC, new_TSC, sizeof (unsigned long long int) * numCPUs);
-		}				//ENDOF INFINITE FOR LOOP
+		}else{
+			  // If all the cores in the socket go offline, just erase the whole screen
+              //WELL for single socket machine this code will never be executed. lol
+			  //atleast 1 core will be online so ...
+			  for(ii = 0 ; ii<14; ii++)
+					mvprintw (3 + ii + printw_offset, 0, "\n");
+		}
 
 }
 
@@ -576,7 +582,7 @@ void print_i7z_single ()
 	  int socket_num;
 
       //below variables stores how many cpus were observed till date for the socket
-	  int max_cpus_observed;
+	  int max_cpus_observed=0;
 
 	  for (;;)
 	  {
