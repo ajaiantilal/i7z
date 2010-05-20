@@ -89,6 +89,7 @@ void print_i7z_socket_single(struct cpu_socket_info socket_0, int printw_offset,
 	float BLCK;
 	
 	char print_core[32];
+	long double c1_time;
 
 	//use this variable to monitor the max number of cores ever online
 	*max_observed_cpu = (socket_0.max_cpu > *max_observed_cpu)? socket_0.max_cpu: *max_observed_cpu;
@@ -439,10 +440,18 @@ void print_i7z_socket_single(struct cpu_socket_info socket_0, int printw_offset,
 			  for (ii = 0; ii <  numCPUs; ii++)
 			  {
 				i = core_list[ii];
+				//there is a bit of leeway to be had as the total counts might deviate
+				//if this happens c1_time might be negative so just adjust so that it is thresholded to 0
+				c1_time = C1_time[i] * 100 - (C3_time[i] + C6_time[i]) * 100;
+				if (!isnan(c1_time) && !isinf(c1_time)){
+					if (c1_time <= 0){
+					    c1_time=0;
+					}
+				}
 				if(print_core[ii])				
 					mvprintw (12 + ii + printw_offset, 0, "\tCore %d [%d]:\t  %0.2f (%.2fx)\t%4.3Lg\t%4.3Lg\t%4.3Lg\t%4.3Lg\n", 
 						ii + 1, core_list[ii], _FREQ[i], _MULT[i], THRESHOLD_BETWEEN_0_100(C0_time[i] * 100),
-						THRESHOLD_BETWEEN_0_100(C1_time[i] * 100 - (C3_time[i] + C6_time[i]) * 100), 
+						THRESHOLD_BETWEEN_0_100(c1_time), 
 						THRESHOLD_BETWEEN_0_100(C3_time[i] * 100), THRESHOLD_BETWEEN_0_100(C6_time[i] * 100));	//C0_time[i]*100+C1_time[i]*100 around 100				
 				else
 					mvprintw (12 + ii + printw_offset, 0, "\tCore %d [%d]:\t  Garbage Values\n", ii + 1, core_list[ii]);

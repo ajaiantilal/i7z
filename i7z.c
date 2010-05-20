@@ -44,10 +44,10 @@ int main ()
 
 	construct_CPU_Heirarchy_info(&chi);
 	construct_sibling_list(&chi);
-    print_CPU_Heirarchy(chi);
+	print_CPU_Heirarchy(chi);
 	construct_socket_information(&chi, &socket_0, &socket_1);
 	print_socket_information(&socket_0);
-    print_socket_information(&socket_1);
+	print_socket_information(&socket_1);
 
 	if(socket_0.max_cpu>0 && socket_1.max_cpu>0){	
 		//Path for Dual Socket Code
