@@ -504,8 +504,9 @@ void print_i7z_socket_single(struct cpu_socket_info socket_0, int printw_offset,
               //WELL for single socket machine this code will never be executed. lol
 			  //atleast 1 core will be online so ...
 			  for(ii = 0 ; ii<14; ii++)
-					mvprintw (3 + ii + printw_offset, 0, "\n");
-		}
+					mvprintw (3 + ii + printw_offset, 0, "Ending up here\n");
+			  print_socket_information(&socket_0);
+		} 
 
 }
 

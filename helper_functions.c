@@ -549,7 +549,7 @@ void print_socket_information(struct cpu_socket_info* socket)
 			sprintf(socket_list,"%s%d,",socket_list,socket->processor_num[i]);
 		}
 	}
-//	printf("Socket-%d [num of cpus %d physical %d logical %d] %s\n",socket->socket_num,socket->max_cpu,socket->num_physical_cores,socket->num_logical_cores,socket_list);
+	printf("Socket-%d [num of cpus %d physical %d logical %d] %s\n",socket->socket_num,socket->max_cpu,socket->num_physical_cores,socket->num_logical_cores,socket_list);
 }
 
 void construct_CPU_Heirarchy_info(struct cpu_heirarchy_info* chi)
@@ -592,7 +592,7 @@ void construct_CPU_Heirarchy_info(struct cpu_heirarchy_info* chi)
 		}
 	}
 	chi->max_online_cpu = it_processor_num+1;
-
+	fclose(fp);
 }
 
 void print_CPU_Heirarchy(struct cpu_heirarchy_info chi)
