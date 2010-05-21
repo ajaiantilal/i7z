@@ -37,135 +37,131 @@
 void
 print_family_info (struct family_info *proc_info)
 {
-//print CPU info
-  printf ("i7z DEBUG:    Stepping %x\n", proc_info->stepping);
-  printf ("i7z DEBUG:    Model %x\n", proc_info->model);
-  printf ("i7z DEBUG:    Family %x\n", proc_info->family);
-  printf ("i7z DEBUG:    Processor Type %x\n", proc_info->processor_type);
-  printf ("i7z DEBUG:    Extended Model %x\n", proc_info->extended_model);
-  //    printf("    Extended Family %x\n", (short int*)(&proc_info->extended_family));
-  //    printf("    Extended Family %d\n", proc_info->extended_family);
+	  //print CPU info
+	  printf ("i7z DEBUG:    Stepping %x\n", proc_info->stepping);
+	  printf ("i7z DEBUG:    Model %x\n", proc_info->model);
+	  printf ("i7z DEBUG:    Family %x\n", proc_info->family);
+	  printf ("i7z DEBUG:    Processor Type %x\n", proc_info->processor_type);
+	  printf ("i7z DEBUG:    Extended Model %x\n", proc_info->extended_model);
+	  //    printf("    Extended Family %x\n", (short int*)(&proc_info->extended_family));
+	  //    printf("    Extended Family %d\n", proc_info->extended_family);
 }
 
 
 #ifdef x64_BIT
-void
-get_vendor (char *vendor_string)
+void  get_vendor (char *vendor_string)
 {
-//get vendor name
-  unsigned int b, c, d, e;
-//  int i;
-  asm volatile ("mov %4, %%eax; "	// 0 into eax
-		"cpuid;" "mov %%eax, %0;"	// eeax into b
-		"mov %%ebx, %1;"	// eebx into c
-		"mov %%edx, %2;"	// eeax into d
-		"mov %%ecx, %3;"	// eeax into e                
-		:"=r" (b), "=r" (c), "=r" (d), "=r" (e)	/* output */
-		:"r" (0)	/* input */
-		:"%eax", "%ebx", "%ecx", "%edx"	/* clobbered register, will be modifying inside the asm routine so dont use them */
-    );
-  memcpy (vendor_string, &c, 4);
-  memcpy (vendor_string + 4, &d, 4);
-  memcpy (vendor_string + 8, &e, 4);
-  vendor_string[12] = '\0';
-//        printf("Vendor %s\n",vendor_string);
+	//get vendor name
+	  unsigned int b, c, d, e;
+	//  int i;
+	  asm volatile ("mov %4, %%eax; "	// 0 into eax
+			"cpuid;" "mov %%eax, %0;"	// eeax into b
+			"mov %%ebx, %1;"	// eebx into c
+			"mov %%edx, %2;"	// eeax into d
+			"mov %%ecx, %3;"	// eeax into e                
+			:"=r" (b), "=r" (c), "=r" (d), "=r" (e)	/* output */
+			:"r" (0)	/* input */
+			:"%eax", "%ebx", "%ecx", "%edx"	/* clobbered register, will be modifying inside the asm routine so dont use them */
+	    );
+	  memcpy (vendor_string, &c, 4);
+	  memcpy (vendor_string + 4, &d, 4);
+	  memcpy (vendor_string + 8, &e, 4);
+	  vendor_string[12] = '\0';
+	//        printf("Vendor %s\n",vendor_string);
 }
 #endif
 
-int
-turbo_status ()
+int turbo_status ()
 {
-//turbo state flag
-  unsigned int eax;
-//  int i;
-  asm volatile ("mov %1, %%eax; "	// 0 into eax
-		"cpuid;" "mov %%eax, %0;"	// eeax into b
-		:"=r" (eax)	/* output */
-		:"r" (6)	/* input */
-		:"%eax"		/* clobbered register, will be modifying inside the asm routine so dont use them */
-    );
+	//turbo state flag
+	unsigned int eax;
+	//  int i;
+	asm volatile ("mov %1, %%eax; "	// 0 into eax
+			"cpuid;" "mov %%eax, %0;"	// eeax into b
+			:"=r" (eax)	/* output */
+			:"r" (6)	/* input */
+			:"%eax"		/* clobbered register, will be modifying inside the asm routine so dont use them */
+	);
 
-  //printf("eax %d\n",(eax&0x2)>>1);
+	//printf("eax %d\n",(eax&0x2)>>1);
 
-  return ((eax & 0x2) >> 1);
+	return ((eax & 0x2) >> 1);
 }
 
-void
-get_familyinformation (struct family_info *proc_info)
+void get_familyinformation (struct family_info *proc_info)
 {
-  //get info about CPU
-  unsigned int b;
-  asm volatile ("mov %1, %%eax; "	// 0 into eax
-		"cpuid;" "mov %%eax, %0;"	// eeax into b
-		:"=r" (b)	/* output */
-		:"r" (1)	/* input */
-		:"%eax"		/* clobbered register, will be modifying inside the asm routine so dont use them */
-    );
-//  printf ("eax %x\n", b);
-  proc_info->stepping = b & 0x0000000F;	//bits 3:0
-  proc_info->model = (b & 0x000000F0) >> 4;	//bits 7:4
-  proc_info->family = (b & 0x00000F00) >> 8;	//bits 11:8
-  proc_info->processor_type = (b & 0x00007000) >> 12;	//bits 13:12
-  proc_info->extended_model = (b & 0x000F0000) >> 16;	//bits 19:16
-  proc_info->extended_family = (b & 0x0FF00000) >> 20;	//bits 27:20
+	  //get info about CPU
+	  unsigned int b;
+	  asm volatile ("mov %1, %%eax; "	// 0 into eax
+			"cpuid;" "mov %%eax, %0;"	// eeax into b
+			:"=r" (b)	/* output */
+			:"r" (1)	/* input */
+			:"%eax"		/* clobbered register, will be modifying inside the asm routine so dont use them */
+	    );
+	//  printf ("eax %x\n", b);
+	  proc_info->stepping = b & 0x0000000F;	//bits 3:0
+	  proc_info->model = (b & 0x000000F0) >> 4;	//bits 7:4
+	  proc_info->family = (b & 0x00000F00) >> 8;	//bits 11:8
+	  proc_info->processor_type = (b & 0x00007000) >> 12;	//bits 13:12
+	  proc_info->extended_model = (b & 0x000F0000) >> 16;	//bits 19:16
+	  proc_info->extended_family = (b & 0x0FF00000) >> 20;	//bits 27:20
 }
 
-double
-estimate_MHz ()
+double estimate_MHz ()
 {
-  //copied blantantly from http://www.cs.helsinki.fi/linux/linux-kernel/2001-37/0256.html
-/*
-* $Id: MHz.c,v 1.4 2001/05/21 18:58:01 davej Exp $
-* This file is part of x86info.
-* (C) 2001 Dave Jones.
-*
-* Licensed under the terms of the GNU GPL License version 2.
-*
-* Estimate CPU MHz routine by Andrea Arcangeli <andrea@suse.de>
-* Small changes by David Sterba <sterd9am@ss1000.ms.mff.cuni.cz>
-*
-*/
-  struct timezone tz;
-  struct timeval tvstart, tvstop;
-  unsigned long long int cycles[2];	/* gotta be 64 bit */
-  unsigned long long int microseconds;	/* total time taken */
+	  //copied blantantly from http://www.cs.helsinki.fi/linux/linux-kernel/2001-37/0256.html
+	/*
+	* $Id: MHz.c,v 1.4 2001/05/21 18:58:01 davej Exp $
+	* This file is part of x86info.
+	* (C) 2001 Dave Jones.
+	*
+	* Licensed under the terms of the GNU GPL License version 2.
+	*
+	* Estimate CPU MHz routine by Andrea Arcangeli <andrea@suse.de>
+	* Small changes by David Sterba <sterd9am@ss1000.ms.mff.cuni.cz>
+	*
+	*/
+	  struct timezone tz;
+	  struct timeval tvstart, tvstop;
+	  unsigned long long int cycles[2];	/* gotta be 64 bit */
+	  unsigned long long int microseconds;	/* total time taken */
 
-  memset (&tz, 0, sizeof (tz));
+	  memset (&tz, 0, sizeof (tz));
 
-  /* get this function in cached memory */
-  gettimeofday (&tvstart, &tz);
-  cycles[0] = rdtsc ();
-  gettimeofday (&tvstart, &tz);
+	  /* get this function in cached memory */
+	  gettimeofday (&tvstart, &tz);
+	  cycles[0] = rdtsc ();
+	  gettimeofday (&tvstart, &tz);
 
-  /* we don't trust that this is any specific length of time */
-  //1 sec will cause rdtsc to overlap multiple times perhaps. 100msecs is a good spot
-  usleep (100000);
+	  /* we don't trust that this is any specific length of time */
+	  //1 sec will cause rdtsc to overlap multiple times perhaps. 100msecs is a good spot
+	  usleep (100000);
 
-  cycles[1] = rdtsc ();
-  gettimeofday (&tvstop, &tz);
-  microseconds = ((tvstop.tv_sec - tvstart.tv_sec) * 1000000) +
-    (tvstop.tv_usec - tvstart.tv_usec);
+	  cycles[1] = rdtsc ();
+	  gettimeofday (&tvstop, &tz);
+	  microseconds = ((tvstop.tv_sec - tvstart.tv_sec) * 1000000) +
+	    (tvstop.tv_usec - tvstart.tv_usec);
 
-  unsigned long long int elapsed = 0;
-  if (cycles[1] < cycles[0])
-  {
-      //printf("c0 = %llu   c1 = %llu",cycles[0],cycles[1]);
-      elapsed = UINT32_MAX - cycles[0];
-      elapsed = elapsed + cycles[1];
-      //printf("c0 = %llu  c1 = %llu max = %llu elapsed=%llu\n",cycles[0], cycles[1], UINT32_MAX,elapsed);            
-  }
-  else
-  {
-      elapsed = cycles[1] - cycles[0];
-      //printf("\nc0 = %llu  c1 = %llu elapsed=%llu\n",cycles[0], cycles[1],elapsed);         
-  }
+	  unsigned long long int elapsed = 0;
+	  if (cycles[1] < cycles[0])
+	  {
+	      //printf("c0 = %llu   c1 = %llu",cycles[0],cycles[1]);
+	      elapsed = UINT32_MAX - cycles[0];
+	      elapsed = elapsed + cycles[1];
+	      //printf("c0 = %llu  c1 = %llu max = %llu elapsed=%llu\n",cycles[0], cycles[1], UINT32_MAX,elapsed);            
+	  }
+	  else
+	  {
+	      elapsed = cycles[1] - cycles[0];
+	      //printf("\nc0 = %llu  c1 = %llu elapsed=%llu\n",cycles[0], cycles[1],elapsed);         
+	  }
 
-  double mhz = elapsed / microseconds;
+	  double mhz = elapsed / microseconds;
 
 
-  //printf("%llg MHz processor (estimate).  diff cycles=%llu  microseconds=%llu \n", mhz, elapsed, microseconds);
-  //printf("%g  elapsed %llu  microseconds %llu\n",mhz, elapsed, microseconds);
-  return (mhz);
+	  //printf("%llg MHz processor (estimate).  diff cycles=%llu  microseconds=%llu \n", mhz, elapsed, microseconds);
+	  //printf("%g  elapsed %llu  microseconds %llu\n",mhz, elapsed, microseconds);
+	  return (mhz);
 }
 
 /* Number of decimal digits for a certain number of bits */
@@ -191,96 +187,94 @@ int decdigits[] = {
 const char *program;
 
 
-uint64_t
-get_msr_value (int cpu, uint32_t reg, unsigned int highbit,
+uint64_t get_msr_value (int cpu, uint32_t reg, unsigned int highbit,
 	       unsigned int lowbit, int* error_indx)
 {
-  uint64_t data;
-  int fd;
-//  char *pat;
-//  int width;
-  char msr_file_name[64];
-  int bits;
-  *error_indx =0;
+	  uint64_t data;
+	  int fd;
+	//  char *pat;
+	//  int width;
+	  char msr_file_name[64];
+	  int bits;
+	  *error_indx =0;
 
-  sprintf (msr_file_name, "/dev/cpu/%d/msr", cpu);
-  fd = open (msr_file_name, O_RDONLY);
-  if (fd < 0)
-  {
-    if (errno == ENXIO)
-	{
-	  //fprintf (stderr, "rdmsr: No CPU %d\n", cpu);
-	  *error_indx = 1;
-	  return 1;
-	}else if (errno == EIO){
-	  //fprintf (stderr, "rdmsr: CPU %d doesn't support MSRs\n", cpu);
-	  *error_indx = 1;
-	  return 1;
-	}else{
-	  //perror ("rdmsr:open");
-	  *error_indx = 1;
-	  return 1;
-	  //exit (127);
-	}
-  }
+	  sprintf (msr_file_name, "/dev/cpu/%d/msr", cpu);
+	  fd = open (msr_file_name, O_RDONLY);
+	  if (fd < 0)
+	  {
+	    if (errno == ENXIO)
+		{
+		  //fprintf (stderr, "rdmsr: No CPU %d\n", cpu);
+		  *error_indx = 1;
+		  return 1;
+		}else if (errno == EIO){
+		  //fprintf (stderr, "rdmsr: CPU %d doesn't support MSRs\n", cpu);
+		  *error_indx = 1;
+		  return 1;
+		}else{
+		  //perror ("rdmsr:open");
+		  *error_indx = 1;
+		  return 1;
+		  //exit (127);
+		}
+	  }
 
-  if (pread (fd, &data, sizeof data, reg) != sizeof data)
-  {
-      perror ("rdmsr:pread");
-      exit (127);
-  }
+	  if (pread (fd, &data, sizeof data, reg) != sizeof data)
+	  {
+	      perror ("rdmsr:pread");
+	      exit (127);
+	  }
 
-  close (fd);
+	  close (fd);
 
-  bits = highbit - lowbit + 1;
-  if (bits < 64)
-  {
-      /* Show only part of register */
-      data >>= lowbit;
-      data &= (1ULL << bits) - 1;
-  }
+	  bits = highbit - lowbit + 1;
+	  if (bits < 64)
+	  {
+	      /* Show only part of register */
+	      data >>= lowbit;
+	      data &= (1ULL << bits) - 1;
+	  }
 
-  /* Make sure we get sign correct */
-  if (data & (1ULL << (bits - 1)))
-  {
-      data &= ~(1ULL << (bits - 1));
-      data = -data;
-  }
+	  /* Make sure we get sign correct */
+	  if (data & (1ULL << (bits - 1)))
+	  {
+	      data &= ~(1ULL << (bits - 1));
+	      data = -data;
+	  }
 
-  *error_indx = 0;
-  return (data);
+	  *error_indx = 0;
+	  return (data);
 }
 
-uint64_t
-set_msr_value (int cpu, uint32_t reg, uint64_t data)
+uint64_t set_msr_value (int cpu, uint32_t reg, uint64_t data)
 {
-  int fd;
-  char msr_file_name[64];
+	  int fd;
+	  char msr_file_name[64];
 
-  sprintf (msr_file_name, "/dev/cpu/%d/msr", cpu);
-  fd = open (msr_file_name, O_WRONLY);
-  if (fd < 0)
-  {
-    if (errno == ENXIO)
-	{
-	  fprintf (stderr, "wrmsr: No CPU %d\n", cpu);
-	  exit (2);
-	}else if (errno == EIO){
-	  fprintf (stderr, "wrmsr: CPU %d doesn't support MSRs\n", cpu);
-	  exit (3);
-	}else{
-	  perror ("wrmsr:open");
-	  exit (127);
-	}
-  }
+	  sprintf (msr_file_name, "/dev/cpu/%d/msr", cpu);
+	  fd = open (msr_file_name, O_WRONLY);
+	  if (fd < 0)
+	  {
+	    if (errno == ENXIO)
+		{
+		  fprintf (stderr, "wrmsr: No CPU %d\n", cpu);
+		  exit (2);
+		}else if (errno == EIO){
+		  fprintf (stderr, "wrmsr: CPU %d doesn't support MSRs\n", cpu);
+		  exit (3);
+		}else{
+		  perror ("wrmsr:open");
+		  exit (127);
+		}
+	  }
 
-  if (pwrite (fd, &data, sizeof data, reg) != sizeof data)
-  {
-      perror ("wrmsr:pwrite");
-      exit (127);
-  }
-  close(fd);
-  return(1);
+	  if (pwrite (fd, &data, sizeof data, reg) != sizeof data)
+	  {
+	      perror ("wrmsr:pwrite");
+	      exit (127);
+	  }
+	  close(fd);
+	  return(1);
 }
 
 

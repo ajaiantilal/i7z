@@ -192,8 +192,8 @@ void print_CPU_Heirarchy(struct cpu_heirarchy_info chi)
 	}
 }
 
-int main(){
-
+int main()
+{
 	struct cpu_heirarchy_info chi;
 	struct cpu_socket_info socket_0={.max_cpu=0, .socket_num=0, .processor_num={-1,-1,-1,-1,-1,-1,-1,-1}};
 	struct cpu_socket_info socket_1={.max_cpu=0, .socket_num=1, .processor_num={-1,-1,-1,-1,-1,-1,-1,-1}};

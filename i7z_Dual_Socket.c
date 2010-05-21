@@ -64,10 +64,11 @@ void print_i7z_socket(struct cpu_socket_info socket_0, int printw_offset, int PL
 	//int k;
 	int CPU_NUM;
 	int* core_list;
-    unsigned long int IA32_MPERF, IA32_APERF;
+	unsigned long int IA32_MPERF, IA32_APERF;
 	int CPU_Multiplier, error_indx;
-    unsigned long long int CPU_CLK_UNHALTED_CORE, CPU_CLK_UNHALTED_REF, CPU_CLK_C3, CPU_CLK_C6, CPU_CLK_C1;
-    //current blck value
+	unsigned long long int CPU_CLK_UNHALTED_CORE, CPU_CLK_UNHALTED_REF, CPU_CLK_C3, CPU_CLK_C6, CPU_CLK_C1;
+	
+	//current blck value
 	float BLCK;
 
 	char print_core[32];
@@ -145,7 +146,7 @@ void print_i7z_socket(struct cpu_socket_info socket_0, int printw_offset, int PL
 			  SET_IF_TRUE(error_indx,online_cpus[0],-1);
 			  RETURN_IF_TRUE(online_cpus[0]==-1);
 			  
-		      int IA32_FIXED_CTR_CTL = 909;	//38D
+			  int IA32_FIXED_CTR_CTL = 909;	//38D
 			  int IA32_FIXED_CTR_CTL_Value = get_msr_value (CPU_NUM, IA32_FIXED_CTR_CTL, 63, 0, &error_indx);
 			  SET_IF_TRUE(error_indx,online_cpus[0],-1);
 			  RETURN_IF_TRUE(online_cpus[0]==-1);
@@ -208,9 +209,9 @@ void print_i7z_socket(struct cpu_socket_info socket_0, int printw_offset, int PL
 				mvprintw (33, 0, "C3 = Cores running with PLL turned off and core cache turned off");
 				mvprintw (34, 0, "C6 = Everything in C3 + core state saved to last level cache");
 				mvprintw (35, 0, "  Above values in table are in percentage over the last 1 sec");
-	 		    mvprintw (36, 0, "[core-id] refers to core-id number in /proc/cpuinfo");
-	 		    mvprintw (37, 0, "'Garbage Values' message printed when garbage values are read");
-	 		    mvprintw (38, 0, "  Ctrl+C to exit");
+				mvprintw (36, 0, "[core-id] refers to core-id number in /proc/cpuinfo");
+				mvprintw (37, 0, "'Garbage Values' message printed when garbage values are read");
+				mvprintw (38, 0, "  Ctrl+C to exit");
 			  }
 
 			  numCPUs = core_list_size_phy;
@@ -229,7 +230,7 @@ void print_i7z_socket(struct cpu_socket_info socket_0, int printw_offset, int PL
 			  else
 			  {
 				mvprintw (5 + printw_offset, 0, "  TURBO DISABLED on %d Cores, %s\n", numPhysicalCores, HT_ON_str);
-	 		    TRUE_CPU_FREQ = BLCK * ((double) CPU_Multiplier);
+				TRUE_CPU_FREQ = BLCK * ((double) CPU_Multiplier);
 				mvprintw (6 + printw_offset, 0,	"  True Frequency %0.2f MHz (%0.2f x [%d]) \n", TRUE_CPU_FREQ, BLCK, CPU_Multiplier);
 			  }
 
@@ -300,7 +301,7 @@ void print_i7z_socket(struct cpu_socket_info socket_0, int printw_offset, int PL
 				  SET_IF_TRUE(error_indx,online_cpus[i],-1);
 				  CONTINUE_IF_TRUE(online_cpus[i]==-1);
 
-	  		      new_val_REF[ii] = get_msr_value (CPU_NUM, 779, 63, 0, &error_indx);
+				  new_val_REF[ii] = get_msr_value (CPU_NUM, 779, 63, 0, &error_indx);
 				  SET_IF_TRUE(error_indx,online_cpus[i],-1);
 				  CONTINUE_IF_TRUE(online_cpus[i]==-1);
 
@@ -403,7 +404,7 @@ void print_i7z_socket(struct cpu_socket_info socket_0, int printw_offset, int PL
 				}
 
 			  //CHECK IF ALL COUNTERS ARE CORRECT AND NO GARBAGE VALUES ARE PRESENT
-	          //If there is any garbage values set print_core[i] to 0
+			  //If there is any garbage values set print_core[i] to 0
 			  for (ii = 0; ii <  numCPUs; ii++)
 			  {
 					i = core_list[ii];
@@ -557,13 +558,13 @@ void print_i7z ()
 
 	  int kk_1 = 11, kk_2 = 11;
 
-      //below variables is used to monitor if any cores went offline etc.
-      int online_cpus[32]; //Max Nehalem-EX with total 32 threads
+	  //below variables is used to monitor if any cores went offline etc.
+      	  int online_cpus[32]; //Max Nehalem-EX with total 32 threads
 
 	  double estimated_mhz=0;
 	  int socket_num;
 	
-      //below variables stores how many cpus were observed till date for the socket
+      	  //below variables stores how many cpus were observed till date for the socket
 	  int max_observed_cpu_socket1 = 0, max_observed_cpu_socket2 = 0;
 
 	  int k=0;
@@ -587,9 +588,9 @@ void print_i7z ()
 			
 		  SET_ONLINE_ARRAY_PLUS1(online_cpus)
 		
-          //In the function calls below socket_num is set to the socket to print for 
+          	  //In the function calls below socket_num is set to the socket to print for 
 		  //printw_offset is the offset gap between the printing of the two sockets
-          //kk_1 and kk_2 are the variables that have to be set, i have to use them internally
+          	  //kk_1 and kk_2 are the variables that have to be set, i have to use them internally
 		  //so in future if there are more sockets to be printed, add more kk_*
 		  socket_num=0;
 		  printw_offset=0;
@@ -601,7 +602,7 @@ void print_i7z ()
 				C3_time[socket_num], C6_time[socket_num], tvstart[socket_num], tvstop[socket_num], &max_observed_cpu_socket1);		  
 
 		  /*
-          // TEST CODE FOR CHECKING DUAL SOCK CODE ON SINGLE SOCKET MACHINE
+          	  // TEST CODE FOR CHECKING DUAL SOCK CODE ON SINGLE SOCKET MACHINE
 		  if(k<30){
 			  socket_num=0;
 			  printw_offset=14;
