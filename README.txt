@@ -28,6 +28,9 @@ Installation
     
 
 Version and Bug History:
+v svn-40 (27/May/2010)
+	fixed bugs in dual and single socket when there are too many cores.
+
 v svn-36 (18/May/2010)
 	Fixed a bug with printing the Multiplier Line when only 1 core was enabled.
 	
