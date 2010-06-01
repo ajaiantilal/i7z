@@ -61,6 +61,9 @@ void print_i7z_socket(struct cpu_socket_info socket_0, int printw_offset, int PL
                       U_L_L_I * new_val_C6,  U_L_L_I * new_TSC,  double* _FREQ, double* _MULT, long double * C0_time, long double * C1_time,
                       long double * C3_time,	long double * C6_time, struct timeval* tvstart, struct timeval* tvstop, int *max_observed_cpu)
 {
+	int numPhysicalCores=0, numLogicalCores=0;
+	double TRUE_CPU_FREQ;
+
     int i, ii;
     //int k;
     int CPU_NUM;

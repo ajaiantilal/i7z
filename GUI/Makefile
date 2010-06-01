@@ -13,11 +13,11 @@ CXX           = g++
 DEFINES       = -DQT_NO_DEBUG -DQT_GUI_LIB -DQT_CORE_LIB -DQT_SHARED
 LBITS := $(shell getconf LONG_BIT)
 ifeq ($(LBITS),64)
-    CFLAGS        = -pipe -O0 -Wall -W -D_REENTRANT $(DEFINES) -Dx64_BIT
-    CXXFLAGS      = -pipe -O0 -Wall -W -D_REENTRANT $(DEFINES) -Dx64_BIT
+    CFLAGS        = -pipe -O0 -Wall -W -D_REENTRANT $(DEFINES) -Dx64_BIT -std=gnu++0x -g
+    CXXFLAGS      = -pipe -O0 -Wall -W -D_REENTRANT $(DEFINES) -Dx64_BIT -std=gnu++0x -g
 else
-    CFLAGS        = -pipe -O0 -Wall -W -D_REENTRANT $(DEFINES) -Dx86
-    CXXFLAGS      = -pipe -O0 -Wall -W -D_REENTRANT $(DEFINES) -Dx86
+    CFLAGS        = -pipe -O0 -Wall -W -D_REENTRANT $(DEFINES) -Dx86 -std=gnu++0x -g
+    CXXFLAGS      = -pipe -O0 -Wall -W -D_REENTRANT $(DEFINES) -Dx86 -std=gnu++0x -g
 endif
 INCPATH       = -I/usr/share/qt4/mkspecs/linux-g++ -I. -I/usr/include/qt4/QtCore -I/usr/include/qt4/QtGui -I/usr/include/qt4 -I. -I.
 LINK          = g++
@@ -50,7 +50,7 @@ OBJECTS_DIR   = ./
 ####### Files
 
 SOURCES       = GUI_i7z.cpp 
-OBJECTS       = GUI_i7z.o
+OBJECTS       = GUI_i7z.o 
 DIST          = /usr/share/qt4/mkspecs/common/g++.conf \
 		/usr/share/qt4/mkspecs/common/unix.conf \
 		/usr/share/qt4/mkspecs/common/linux.conf \
@@ -97,7 +97,7 @@ first: all
 
 ####### Build rules
 
-all: Makefile $(TARGET)
+all: clean Makefile $(TARGET)
 
 $(TARGET):  $(OBJECTS)  
 	$(LINK) $(LFLAGS) -o $(TARGET) $(OBJECTS) $(OBJCOMP) $(LIBS)

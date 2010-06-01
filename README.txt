@@ -28,6 +28,11 @@ Installation
     
 
 Version and Bug History:
+v svn-43 (27/May/2010)
+	moved some global variables into individual functions.
+    removed a redundant line that was bieng printed
+	GUI version should support upto 12 physical cores. can be easily edited for more cores.
+
 v svn-40 (27/May/2010)
 	fixed bugs in dual and single socket when there are too many cores.
 

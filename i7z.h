@@ -7,6 +7,8 @@
  *
  * ----------------------------------------------------------------------- */
 
+#define i7z_VERSION_INFO "svn-r43-(31-may-2010)"
+
 //structure to store the information about the processor
 #define proccpuinfo "/proc/cpuinfo"
 
@@ -120,7 +122,7 @@ void print_socket_information(struct cpu_socket_info* socket);
 void construct_CPU_Heirarchy_info(struct cpu_heirarchy_info* chi);
 void print_CPU_Heirarchy(struct cpu_heirarchy_info chi);
 int in_core_list(int ii,int* core_list);
-
+void Print_Version_Information();
 
 #define SET_ONLINE_ARRAY_MINUS1(online_cpus) {for(i=0;i<32;i++) online_cpus[i]=-1;}
 #define SET_ONLINE_ARRAY_PLUS1(online_cpus) {for(i=0;i<32;i++) online_cpus[i]=1;}

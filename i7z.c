@@ -26,13 +26,13 @@
 int Single_Socket();
 int Dual_Socket();
 
-int numPhysicalCores, numLogicalCores;
-double TRUE_CPU_FREQ;
 
 //Info: I start from index 1 when i talk about cores on CPU
 
 int main ()
 {
+	Print_Version_Information();
+
     Print_Information_Processor ();
 
     Test_Or_Make_MSR_DEVICE_FILES ();

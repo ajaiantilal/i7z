@@ -67,6 +67,9 @@ void print_i7z_socket_single(struct cpu_socket_info socket_0, int printw_offset,
                              U_L_L_I * new_val_C6,  U_L_L_I * new_TSC,  double* _FREQ, double* _MULT, long double * C0_time, long double * C1_time,
                              long double * C3_time,	long double * C6_time, struct timeval* tvstart, struct timeval* tvstop, int *max_observed_cpu)
 {
+	int numPhysicalCores, numLogicalCores;
+	double TRUE_CPU_FREQ;
+
     //Print a slew of information on the ncurses window
     mvprintw (0, 0, "Cpu speed from cpuinfo %0.2fMhz\n", cpu_freq_cpuinfo);
     mvprintw (1, 0,
@@ -216,21 +219,22 @@ void print_i7z_socket_single(struct cpu_socket_info socket_0, int printw_offset,
                      MAX_TURBO_5C, MAX_TURBO_6C);
         }
 
+        numCPUs = core_list_size_phy;
+        numPhysicalCores = core_list_size_phy;
+        numLogicalCores = core_list_size_log;
+
         if (socket_0.socket_num == 0) {
             mvprintw (19, 0, "C0 = Processor running without halting");
             mvprintw (20, 0, "C1 = Processor running with halts (States >C0 are power saver)");
             mvprintw (21, 0, "C3 = Cores running with PLL turned off and core cache turned off");
             mvprintw (22, 0, "C6 = Everything in C3 + core state saved to last level cache");
             mvprintw (23, 0, "  Above values in table are in percentage over the last 1 sec");
-            mvprintw (24, 0, "Total Logical Cores: [%d], Total Physical Cores: [%d] \n",	numLogicalCores, numPhysicalCores);
-            mvprintw (25, 0, "[core-id] refers to core-id number in /proc/cpuinfo");
-            mvprintw (26, 0, "'Garbage Values' message printed when garbage values are read");
-            mvprintw (27, 0, "  Ctrl+C to exit");
+//            mvprintw (24, 0, "Total Logical Cores: [%d], Total Physical Cores: [%d] \n",	numLogicalCores, numPhysicalCores);
+            mvprintw (24, 0, "[core-id] refers to core-id number in /proc/cpuinfo");
+            mvprintw (25, 0, "'Garbage Values' message printed when garbage values are read");
+            mvprintw (26, 0, "  Ctrl+C to exit");
         }
 
-        numCPUs = core_list_size_phy;
-        numPhysicalCores = core_list_size_phy;
-        numLogicalCores = core_list_size_log;
         mvprintw (6 + printw_offset, 0, "Socket [%d] - [physical cores=%d, logical cores=%d, max online cores ever=%d] \n", socket_0.socket_num, numPhysicalCores, numLogicalCores,*max_observed_cpu);
 
         mvprintw (9 + printw_offset, 0, "%s %s\n", string_ptr1, string_ptr2);

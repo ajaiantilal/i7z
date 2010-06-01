@@ -7,3 +7,6 @@ Under GPL v2
 libqt4-dev, qmake-qt4 should be enough i think
 
 running the Makefile should be enough
+
+svn-r43
+Wworks for Dual Socket Boards but wont work if core is taken offline while the tool is running.

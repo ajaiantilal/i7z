@@ -298,7 +298,14 @@ void get_CPUs_info (unsigned int *num_Logical_OS,
  *
  * ----------------------------------------------------------------------- */
 
-void Print_Information_Processor() {
+void Print_Version_Information()
+{
+	printf ("i7z DEBUG: i7z version: %s\n",i7z_VERSION_INFO);
+}
+
+
+void Print_Information_Processor() 
+{
     struct family_info proc_info;
 
 #ifdef x64_BIT
@@ -373,7 +380,8 @@ void Print_Information_Processor() {
 
 }
 
-void Test_Or_Make_MSR_DEVICE_FILES() {
+void Test_Or_Make_MSR_DEVICE_FILES() 
+{
     //test if the msr file exists
     if (access ("/dev/cpu/0/msr", F_OK) == 0)
     {
@@ -610,7 +618,7 @@ void print_CPU_Heirarchy(struct cpu_heirarchy_info chi)
         printf("--[%d] Processor number %d\n",i,chi.processor_num[i]);
         printf("--[%d] Socket number/Hyperthreaded Sibling number  %d,%d\n",i,chi.package_num[i],chi.sibling_num[i]);
         printf("--[%d] Core id number %d\n",i,chi.coreid_num[i]);
-        printf("--[%d] Display core in i7z Tool %d\n\n",i,chi.display_cores[i]);
+        printf("--[%d] Display core in i7z Tool: %s\n\n",i,(chi.display_cores[i]==1)?"Yes":"No");
     }
 }
 
