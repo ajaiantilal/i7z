@@ -9,6 +9,8 @@
 
 #define i7z_VERSION_INFO "svn-r43-(31-may-2010)"
 
+#define CPU_FREQUENCY_LOGGING_FILE "cpu_freq_log.txt"
+
 //structure to store the information about the processor
 #define proccpuinfo "/proc/cpuinfo"
 
@@ -21,6 +23,10 @@
 #define MAX_PROCESSORS  32
 #define MAX_HI_PROCESSORS    MAX_PROCESSORS
 #define MAX_SK_PROCESSORS    (MAX_PROCESSORS/4)
+
+struct program_options{
+    int logging; //0=no logging, 1=logging, 2=appending
+};
 
 struct cpu_heirarchy_info {
     int max_online_cpu;

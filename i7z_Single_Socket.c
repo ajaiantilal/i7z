@@ -29,6 +29,39 @@
 extern int numPhysicalCores, numLogicalCores;
 extern double TRUE_CPU_FREQ;
 
+FILE *fp_log_file;
+extern struct program_options prog_options;
+void logOpenFile()
+{
+    if(prog_options.logging==1)
+	fp_log_file = fopen(CPU_FREQUENCY_LOGGING_FILE,"w");
+    else if(prog_options.logging==2)
+	fp_log_file = fopen(CPU_FREQUENCY_LOGGING_FILE,"a");
+}
+
+void logCloseFile()
+{
+    if(prog_options.logging!=0){
+	if(prog_options.logging==2)
+	    fprintf(fp_log_file,"\n");
+	//the above line puts a \n after every freq is logged.
+	fclose(fp_log_file);
+    }
+}
+
+void logCpuFreq(float value)
+{
+    //below when just logging
+    if(prog_options.logging==1)
+	fprintf(fp_log_file,"%f\n",value); //newline, replace \n with \t to get everything separated with tabs
+   
+    //below when appending
+    if(prog_options.logging==2)
+	fprintf(fp_log_file,"%f\t",value);
+}
+
+
+
 void print_i7z_socket_single(struct cpu_socket_info socket_0, int printw_offset, int PLATFORM_INFO_MSR,  int PLATFORM_INFO_MSR_high,  int PLATFORM_INFO_MSR_low,
                              int* online_cpus, double cpu_freq_cpuinfo,  struct timespec one_second_sleep, char TURBO_MODE,
                              char* HT_ON_str, int* kk_1, U_L_L_I * old_val_CORE, U_L_L_I * old_val_REF, U_L_L_I * old_val_C3, U_L_L_I * old_val_C6,
@@ -40,6 +73,12 @@ void print_i7z_single ();
 
 int Single_Socket ()
 {
+    //zero up the file before doing anything
+    if(prog_options.logging!=0){
+        fp_log_file = fopen(CPU_FREQUENCY_LOGGING_FILE,"w");
+	fclose(fp_log_file);
+    }
+    
     int row, col;			/* to store the number of rows and    *
 					 * the number of colums of the screen *
 					 * for NCURSES                        */
@@ -465,13 +504,22 @@ void print_i7z_socket_single(struct cpu_socket_info socket_0, int printw_offset,
             mvprintw (12 + ii + printw_offset, 0, "\n");
 
         TRUE_CPU_FREQ = 0;
+        
+        logOpenFile();
+        
         for (ii = 0; ii < numCPUs; ii++) {
             assert(ii < MAX_SK_PROCESSORS);
             i = core_list[ii];
             if ( (_FREQ[i] > TRUE_CPU_FREQ) && (print_core[ii]) && !isinf(_FREQ[i]) ) {
                 TRUE_CPU_FREQ = _FREQ[i];
             }
+            if ( (print_core[ii]) && !isinf(_FREQ[i]) ) {
+        	logCpuFreq(_FREQ[i]);
+            }
         }
+        
+        logCloseFile();
+        
         mvprintw (10 + printw_offset, 0,
                   "  Current Frequency %0.2f MHz (Max of below)\n", TRUE_CPU_FREQ);
 
@@ -585,6 +633,7 @@ void print_i7z_single ()
         construct_CPU_Heirarchy_info(&chi);
         construct_sibling_list(&chi);
         construct_socket_information(&chi, &socket_0, &socket_1);
+        
 
         //HT enabled if num logical > num physical cores
         if (chi.HT==1) {
