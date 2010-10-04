@@ -29,7 +29,7 @@
 
 extern int numPhysicalCores, numLogicalCores;
 extern double TRUE_CPU_FREQ;
-
+int Read_Thermal_Status_CPU(int cpu_num);
 void print_i7z ();
 
 int Dual_Socket ()
@@ -293,7 +293,7 @@ void print_i7z_socket(struct cpu_socket_info socket_0, int printw_offset, int PL
         }
         (*kk_1)++;
         nanosleep (&one_second_sleep, NULL);
-        mvprintw (9 + printw_offset, 0, "\tCore [core-id]  :Actual Freq (Mult.)\t  C0%%   Halt(C1)%%  C3 %%   C6 %%\n");
+        mvprintw (9 + printw_offset, 0, "\tCore [core-id]  :Actual Freq (Mult.)\t  C0%%   Halt(C1)%%  C3 %%   C6 %%  Temp\n");
 
         //estimate the CPU speed
         estimated_mhz = estimate_MHz ();
@@ -445,9 +445,9 @@ void print_i7z_socket(struct cpu_socket_info socket_0, int printw_offset, int PL
                 }
             }
             if (print_core[ii])
-                mvprintw (10 + ii + printw_offset, 0, "\tCore %d [%d]:\t  %0.2f (%.2fx)\t%4.3Lg\t%4.3Lg\t%4.3Lg\t%4.3Lg\n",
+                mvprintw (10 + ii + printw_offset, 0, "\tCore %d [%d]:\t  %0.2f (%.2fx)\t%4.3Lg\t%4.3Lg\t%4.3Lg\t%4.3Lg\t%d\n",
                           ii + 1, core_list[ii], _FREQ[i], _MULT[i], THRESHOLD_BETWEEN_0_100(C0_time[i] * 100),
-                          THRESHOLD_BETWEEN_0_100(c1_time), THRESHOLD_BETWEEN_0_100(C3_time[i] * 100), THRESHOLD_BETWEEN_0_100(C6_time[i] * 100));	//C0_time[i]*100+C1_time[i]*100 around 100
+                          THRESHOLD_BETWEEN_0_100(c1_time), THRESHOLD_BETWEEN_0_100(C3_time[i] * 100), THRESHOLD_BETWEEN_0_100(C6_time[i] * 100),Read_Thermal_Status_CPU(core_list[ii]));	//C0_time[i]*100+C1_time[i]*100 around 100
             else
                 mvprintw (10 + ii + printw_offset, 0, "\tCore %d [%d]:\t  Garbage Values\n", ii + 1, core_list[ii]);
         }
@@ -512,10 +512,10 @@ void print_i7z ()
 
     construct_CPU_Heirarchy_info(&chi);
     construct_sibling_list(&chi);
-//      print_CPU_Heirarchy(chi);
+      //print_CPU_Heirarchy(chi);
     construct_socket_information(&chi, &socket_0, &socket_1);
-//	  print_socket_information(&socket_0);
-//	  print_socket_information(&socket_1);
+	  //print_socket_information(&socket_0);
+	  //print_socket_information(&socket_1);
 
     int printw_offset = (0) * 14;
 

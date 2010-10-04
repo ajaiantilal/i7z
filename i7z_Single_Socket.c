@@ -28,6 +28,7 @@
 
 extern int numPhysicalCores, numLogicalCores;
 extern double TRUE_CPU_FREQ;
+int Read_Thermal_Status_CPU(int cpu_num);
 
 FILE *fp_log_file;
 extern struct program_options prog_options;
@@ -341,7 +342,7 @@ void print_i7z_socket_single(struct cpu_socket_info socket_0, int printw_offset,
         }
         (*kk_1)++;
         nanosleep (&one_second_sleep, NULL);
-        mvprintw (11 + printw_offset, 0, "\tCore [core-id]  :Actual Freq (Mult.)\t  C0%%   Halt(C1)%%  C3 %%   C6 %%\n");
+        mvprintw (11 + printw_offset, 0, "\tCore [core-id]  :Actual Freq (Mult.)\t  C0%%   Halt(C1)%%  C3 %%   C6 %%  Temp\n");
 
         //estimate the CPU speed
         estimated_mhz = estimate_MHz ();
@@ -477,9 +478,9 @@ void print_i7z_socket_single(struct cpu_socket_info socket_0, int printw_offset,
                 }
             }
             if (print_core[ii])
-                mvprintw (12 + ii + printw_offset, 0, "\tCore %d [%d]:\t  %0.2f (%.2fx)\t%4.3Lg\t%4.3Lg\t%4.3Lg\t%4.3Lg\n",
+                mvprintw (12 + ii + printw_offset, 0, "\tCore %d [%d]:\t  %0.2f (%.2fx)\t%4.3Lg\t%4.3Lg\t%4.3Lg\t%4.3Lg\t%d\n",
                           ii + 1, core_list[ii], _FREQ[i], _MULT[i], THRESHOLD_BETWEEN_0_100(C0_time[i] * 100),
-                          THRESHOLD_BETWEEN_0_100(c1_time), THRESHOLD_BETWEEN_0_100(C3_time[i] * 100), THRESHOLD_BETWEEN_0_100(C6_time[i] * 100));	//C0_time[i]*100+C1_time[i]*100 around 100
+                          THRESHOLD_BETWEEN_0_100(c1_time), THRESHOLD_BETWEEN_0_100(C3_time[i] * 100), THRESHOLD_BETWEEN_0_100(C6_time[i] * 100),Read_Thermal_Status_CPU(core_list[ii]));	//C0_time[i]*100+C1_time[i]*100 around 100
             else
                 mvprintw (12 + ii + printw_offset, 0, "\tCore %d [%d]:\t  Garbage Values\n", ii + 1, core_list[ii]);
         }
