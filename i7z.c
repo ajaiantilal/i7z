@@ -85,11 +85,13 @@ int main (int argc, char **argv)
     if (socket_0.max_cpu>0 && socket_1.max_cpu>0) {
         //Path for Dual Socket Code
         printf("i7z DEBUG: Dual Socket Detected\n");
-        Dual_Socket(&prog_options);
+        //Dual_Socket(&prog_options);
+        Dual_Socket();
     } else {
         //Path for Single Socket Code
         printf("i7z DEBUG: Single Socket Detected\n");
-        Single_Socket(&prog_options);
+        //Single_Socket(&prog_options);
+        Single_Socket();
     }
     return(1);
 }

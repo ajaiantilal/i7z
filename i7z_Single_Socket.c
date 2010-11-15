@@ -263,7 +263,7 @@ void print_i7z_socket_single(struct cpu_socket_info socket_0, int printw_offset,
         numPhysicalCores = core_list_size_phy;
         numLogicalCores = core_list_size_log;
 
-        if (socket_0.socket_num == 0) {
+        //if (socket_0.socket_num == 0) {
             mvprintw (19, 0, "C0 = Processor running without halting");
             mvprintw (20, 0, "C1 = Processor running with halts (States >C0 are power saver)");
             mvprintw (21, 0, "C3 = Cores running with PLL turned off and core cache turned off");
@@ -273,7 +273,7 @@ void print_i7z_socket_single(struct cpu_socket_info socket_0, int printw_offset,
             mvprintw (24, 0, "[core-id] refers to core-id number in /proc/cpuinfo");
             mvprintw (25, 0, "'Garbage Values' message printed when garbage values are read");
             mvprintw (26, 0, "  Ctrl+C to exit");
-        }
+        //}
 
         mvprintw (6 + printw_offset, 0, "Socket [%d] - [physical cores=%d, logical cores=%d, max online cores ever=%d] \n", socket_0.socket_num, numPhysicalCores, numLogicalCores,*max_observed_cpu);
 
@@ -655,13 +655,30 @@ void print_i7z_single ()
         //so in future if there are more sockets to be printed, add more kk_*
         socket_num=0;
         printw_offset=0;
-        print_i7z_socket_single(socket_0, printw_offset, PLATFORM_INFO_MSR,  PLATFORM_INFO_MSR_high, PLATFORM_INFO_MSR_low,
+        
+        //printf("socket0 max cpu %d\n",socket_0.max_cpu);
+        //printf("socket1 max cpu %d\n",socket_0.max_cpu);
+        
+        
+        //below code in (else case) is to handle when for 2 sockets system, cpu1 is populated and cpu0 is empty.
+        //single socket code but in an intelligent manner and not assuming that cpu0 is always populated before cpu1
+        if(socket_0.max_cpu>1){
+            socket_num=0;
+            print_i7z_socket_single(socket_0, printw_offset, PLATFORM_INFO_MSR,  PLATFORM_INFO_MSR_high, PLATFORM_INFO_MSR_low,
                                 online_cpus, cpu_freq_cpuinfo, one_second_sleep, TURBO_MODE, HT_ON_str, &kk_1, old_val_CORE[socket_num],
                                 old_val_REF[socket_num], old_val_C3[socket_num], old_val_C6[socket_num],
                                 old_TSC[socket_num], estimated_mhz, new_val_CORE[socket_num], new_val_REF[socket_num], new_val_C3[socket_num],
                                 new_val_C6[socket_num], new_TSC[socket_num], _FREQ[socket_num], _MULT[socket_num], C0_time[socket_num], C1_time[socket_num],
                                 C3_time[socket_num], C6_time[socket_num], tvstart[socket_num], tvstop[socket_num], &max_cpus_observed);
-
+	}else{
+	    socket_num=1;
+	    print_i7z_socket_single(socket_1, printw_offset, PLATFORM_INFO_MSR,  PLATFORM_INFO_MSR_high, PLATFORM_INFO_MSR_low,
+		                online_cpus, cpu_freq_cpuinfo, one_second_sleep, TURBO_MODE, HT_ON_str, &kk_1, old_val_CORE[socket_num],
+                                old_val_REF[socket_num], old_val_C3[socket_num], old_val_C6[socket_num],
+                                old_TSC[socket_num], estimated_mhz, new_val_CORE[socket_num], new_val_REF[socket_num], new_val_C3[socket_num],
+                                new_val_C6[socket_num], new_TSC[socket_num], _FREQ[socket_num], _MULT[socket_num], C0_time[socket_num], C1_time[socket_num],
+                                C3_time[socket_num], C6_time[socket_num], tvstart[socket_num], tvstop[socket_num], &max_cpus_observed);
+	}
     }
 
 }
