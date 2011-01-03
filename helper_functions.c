@@ -35,11 +35,11 @@
 
 //#define ULLONG_MAX 18446744073709551615
 
+extern struct program_options prog_options;
+
 /////////////////////////////////////////READ TEMPERATURE////////////////////////////////////////////
 #define IA32_THERM_STATUS 0x19C
 #define IA32_TEMPERATURE_TARGET 0x1a2
-
-
 
 int Get_Bits_Value(unsigned long val,int highbit, int lowbit){ 
 	unsigned long data = val;

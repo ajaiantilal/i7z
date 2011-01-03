@@ -29,6 +29,102 @@ int Single_Socket();
 int Dual_Socket();
 
 
+/////////////////////LOGGING TO FILE////////////////////////////////////////
+FILE *fp_log_file;
+FILE *fp_log_file1, *fp_log_file2;
+
+void logOpenFile_single()
+{
+    if(prog_options.logging==1)
+	fp_log_file = fopen(CPU_FREQUENCY_LOGGING_FILE_single,"w");
+    else if(prog_options.logging==2)
+	fp_log_file = fopen(CPU_FREQUENCY_LOGGING_FILE_single,"a");
+}
+
+void logCloseFile_single()
+{
+    if(prog_options.logging!=0){
+	if(prog_options.logging==2)
+	    fprintf(fp_log_file,"\n");
+	//the above line puts a \n after every freq is logged.
+	fclose(fp_log_file);
+    }
+}
+
+void logCpuFreq_single(float value)
+{
+    //below when just logging
+    if(prog_options.logging==1)
+	fprintf(fp_log_file,"%f\n",value); //newline, replace \n with \t to get everything separated with tabs
+   
+    //below when appending
+    if(prog_options.logging==2)
+	fprintf(fp_log_file,"%f\t",value);
+}
+
+// For dual socket make filename based on the socket number
+void logOpenFile_dual(int socket_num)
+{
+	char str_file[100];
+	snprintf(str_file,100,CPU_FREQUENCY_LOGGING_FILE_dual,socket_num);
+
+	if(socket_num==0){
+		if(prog_options.logging==1)
+			fp_log_file1 = fopen(str_file,"w");
+		else if(prog_options.logging==2)
+			fp_log_file1 = fopen(str_file,"a");
+	}
+	if(socket_num==1){
+		if(prog_options.logging==1)
+			fp_log_file2 = fopen(str_file,"w");
+		else if(prog_options.logging==2)
+			fp_log_file2 = fopen(str_file,"a");
+	}
+}
+
+void logCloseFile_dual(int socket_num)
+{
+	if(socket_num==0){
+		if(prog_options.logging!=0){
+			if(prog_options.logging==2)
+				fprintf(fp_log_file1,"\n");
+			//the above line puts a \n after every freq is logged.
+			fclose(fp_log_file1);
+		}
+	}
+	if(socket_num==1){
+		if(prog_options.logging!=0){
+			if(prog_options.logging==2)
+				fprintf(fp_log_file2,"\n");
+			//the above line puts a \n after every freq is logged.
+			fclose(fp_log_file2);
+		}
+	}
+}
+
+void logCpuFreq_dual(float value,int socket_num)
+{
+	if(socket_num==0){
+		//below when just logging
+		if(prog_options.logging==1)
+		fprintf(fp_log_file1,"%f\n",value); //newline, replace \n with \t to get everything separated with tabs
+	   
+		//below when appending
+		if(prog_options.logging==2)
+		fprintf(fp_log_file1,"%f\t",value);
+	}
+	if(socket_num==1){
+		//below when just logging
+		if(prog_options.logging==1)
+		fprintf(fp_log_file2,"%f\n",value); //newline, replace \n with \t to get everything separated with tabs
+	   
+		//below when appending
+		if(prog_options.logging==2)
+		fprintf(fp_log_file2,"%f\t",value);
+	}
+}
+
+
 //Info: I start from index 1 when i talk about cores on CPU
 
 int main (int argc, char **argv)
@@ -39,7 +135,7 @@ int main (int argc, char **argv)
     int c;
     char *cvalue = NULL;
     while( (c=getopt(argc,argv,"w:")) !=-1){
-	cvalue = optarg;
+		cvalue = optarg;
     	//printf("argument %c\n",c);
     	if(cvalue == NULL){
     	    printf("With -w option, requires an argument for append or logging\n");
@@ -47,10 +143,10 @@ int main (int argc, char **argv)
     	}else{
      	    //printf("         %s\n",cvalue);
      	    if(strcmp(cvalue,"a")==0){
-     		printf("Appending frequencies to %s\n", CPU_FREQUENCY_LOGGING_FILE);
+     		printf("Appending frequencies to %s (single_socket) or cpu_freq_log_dual_(%d/%d).txt (dual socket)\n", CPU_FREQUENCY_LOGGING_FILE_single,0,1);
      		prog_options.logging=2;
      	    }else if(strcmp(cvalue,"l")==0){
-     		printf("Logging frequencies to %s\n", CPU_FREQUENCY_LOGGING_FILE);
+     		printf("Logging frequencies to %s (single socket) or cpu_freq_log_dual_(%d/%d).txt (dual socket) \n", CPU_FREQUENCY_LOGGING_FILE_single,0,1);
      		prog_options.logging=1;
      	    }else{
      		printf("Unknown Option, ignoring -w option.\n");

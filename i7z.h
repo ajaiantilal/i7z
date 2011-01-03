@@ -7,9 +7,10 @@
  *
  * ----------------------------------------------------------------------- */
 
-#define i7z_VERSION_INFO "svn-r43-(31-may-2010)"
+#define i7z_VERSION_INFO "svn-r50-(1-1-2011)"
 
-#define CPU_FREQUENCY_LOGGING_FILE "cpu_freq_log.txt"
+#define CPU_FREQUENCY_LOGGING_FILE_single "cpu_freq_log.txt"
+#define CPU_FREQUENCY_LOGGING_FILE_dual "cpu_freq_log_dual_%d.txt"
 
 //structure to store the information about the processor
 #define proccpuinfo "/proc/cpuinfo"
@@ -27,6 +28,16 @@
 struct program_options{
     int logging; //0=no logging, 1=logging, 2=appending
 };
+
+/// Logging Functions
+void logOpenFile_single();
+void logCloseFile_single();
+void logCpuFreq_single(float value);
+
+void logOpenFile_dual(int);
+void logCloseFile_dual(int);
+void logCpuFreq_dual(float,int);
+
 
 struct cpu_heirarchy_info {
     int max_online_cpu;

@@ -29,6 +29,7 @@
 #include <QTimer>
 #include <QTime>
 
+
 #ifndef UINT32_MAX
 # define UINT32_MAX (4294967295U)
 #endif
@@ -616,7 +617,7 @@ MyWidget::UpdateWidget ()
     char val2set[100];
     for (i = 0; i < (int)numCPUs; i++)
     {
-        snprintf (val2set, 100, "%0.2f Ghz", mythread->FREQ[i]);
+        snprintf (val2set, 100, "%0.2f Mhz", mythread->FREQ[i]);
         Freq_[i]->setText (val2set);
     }
 
@@ -647,12 +648,12 @@ MyWidget::UpdateWidget ()
     }
     if (socket_0.num_physical_cores > 0) {
         StatusMessage0->setText ("Socket[0] Freq:");
-        snprintf (val2set, 100, "%0.2f Ghz", Max_Freq_socket0);
+        snprintf (val2set, 100, "%0.2f Mhz", Max_Freq_socket0);
         Curr_Freq0->setText (val2set);
     }
     if (socket_1.num_physical_cores > 0) {
         StatusMessage1->setText ("Socket[1] Freq:");
-        snprintf (val2set, 100, "%0.2f Ghz", Max_Freq_socket1);
+        snprintf (val2set, 100, "%0.2f Mhz", Max_Freq_socket1);
         Curr_Freq1->setText (val2set);
     }
 }
@@ -662,11 +663,18 @@ MyWidget::UpdateWidget ()
 int
 main (int argc, char *argv[])
 {
-    QApplication app (argc, argv);
-
-    MyWidget i7z_widget;
-    i7z_widget.show ();
-    return app.exec ();
+	char hostname[1024];
+	hostname[1023] = '\0';
+	gethostname(hostname, 1023);
+    
+	QApplication app (argc, argv);
+	
+	char str_display[1050];
+	snprintf(str_display, 1050, "i7z @ %s", hostname);
+        MyWidget i7z_widget;
+	i7z_widget.setWindowTitle(str_display);
+	i7z_widget.show ();
+	return app.exec ();
 }
 
 #include "GUI_i7z.moc"

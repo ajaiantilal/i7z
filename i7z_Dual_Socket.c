@@ -30,11 +30,27 @@
 extern int numPhysicalCores, numLogicalCores;
 extern double TRUE_CPU_FREQ;
 int Read_Thermal_Status_CPU(int cpu_num);
+
+extern struct program_options prog_options;
+extern FILE *fp_log_file;
+extern FILE *fp_log_file1, *fp_log_file2;
+
 void print_i7z ();
 
 int Dual_Socket ()
 {
-    int row, col;			/* to store the number of rows and    *
+	//zero up the file before doing anything
+    if(prog_options.logging!=0){
+		char str_file[100];
+		snprintf(str_file,100,CPU_FREQUENCY_LOGGING_FILE_dual,0);
+        fp_log_file = fopen(str_file,"w");
+
+		snprintf(str_file,100,CPU_FREQUENCY_LOGGING_FILE_dual,1);
+        fp_log_file = fopen(str_file,"w");
+		fclose(fp_log_file);
+    }
+        
+	int row, col;			/* to store the number of rows and    *
 					 * the number of colums of the screen *
 					 * for NCURSES                        */
 
@@ -472,6 +488,9 @@ void print_i7z_socket(struct cpu_socket_info socket_0, int printw_offset, int PL
             mvprintw (10 + ii + printw_offset, 0, "\n");
 
         TRUE_CPU_FREQ = 0;
+
+		logOpenFile_dual(socket_0.socket_num);
+
         for (ii = 0; ii < numCPUs; ii++)
         {
             assert(ii < MAX_SK_PROCESSORS);
@@ -480,7 +499,12 @@ void print_i7z_socket(struct cpu_socket_info socket_0, int printw_offset, int PL
             {
                 TRUE_CPU_FREQ = _FREQ[i];
             }
+			if ( (print_core[ii]) && !isinf(_FREQ[i]) ) {
+	        	logCpuFreq_dual(_FREQ[i],socket_0.socket_num);
+            }
         }
+
+		logCloseFile_dual(socket_0.socket_num);
 
         mvprintw (8 + printw_offset, 0,
                   "  Current Frequency %0.2f MHz (Max of below)\n", TRUE_CPU_FREQ);

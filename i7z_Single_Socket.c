@@ -30,38 +30,8 @@ extern int numPhysicalCores, numLogicalCores;
 extern double TRUE_CPU_FREQ;
 int Read_Thermal_Status_CPU(int cpu_num);
 
-FILE *fp_log_file;
 extern struct program_options prog_options;
-void logOpenFile()
-{
-    if(prog_options.logging==1)
-	fp_log_file = fopen(CPU_FREQUENCY_LOGGING_FILE,"w");
-    else if(prog_options.logging==2)
-	fp_log_file = fopen(CPU_FREQUENCY_LOGGING_FILE,"a");
-}
-
-void logCloseFile()
-{
-    if(prog_options.logging!=0){
-	if(prog_options.logging==2)
-	    fprintf(fp_log_file,"\n");
-	//the above line puts a \n after every freq is logged.
-	fclose(fp_log_file);
-    }
-}
-
-void logCpuFreq(float value)
-{
-    //below when just logging
-    if(prog_options.logging==1)
-	fprintf(fp_log_file,"%f\n",value); //newline, replace \n with \t to get everything separated with tabs
-   
-    //below when appending
-    if(prog_options.logging==2)
-	fprintf(fp_log_file,"%f\t",value);
-}
-
-
+extern FILE *fp_log_file;
 
 void print_i7z_socket_single(struct cpu_socket_info socket_0, int printw_offset, int PLATFORM_INFO_MSR,  int PLATFORM_INFO_MSR_high,  int PLATFORM_INFO_MSR_low,
                              int* online_cpus, double cpu_freq_cpuinfo,  struct timespec one_second_sleep, char TURBO_MODE,
@@ -76,8 +46,8 @@ int Single_Socket ()
 {
     //zero up the file before doing anything
     if(prog_options.logging!=0){
-        fp_log_file = fopen(CPU_FREQUENCY_LOGGING_FILE,"w");
-	fclose(fp_log_file);
+        fp_log_file = fopen(CPU_FREQUENCY_LOGGING_FILE_single,"w");
+		fclose(fp_log_file);
     }
     
     int row, col;			/* to store the number of rows and    *
@@ -506,7 +476,7 @@ void print_i7z_socket_single(struct cpu_socket_info socket_0, int printw_offset,
 
         TRUE_CPU_FREQ = 0;
         
-        logOpenFile();
+        logOpenFile_single();
         
         for (ii = 0; ii < numCPUs; ii++) {
             assert(ii < MAX_SK_PROCESSORS);
@@ -515,11 +485,11 @@ void print_i7z_socket_single(struct cpu_socket_info socket_0, int printw_offset,
                 TRUE_CPU_FREQ = _FREQ[i];
             }
             if ( (print_core[ii]) && !isinf(_FREQ[i]) ) {
-        	logCpuFreq(_FREQ[i]);
+        		logCpuFreq_single(_FREQ[i]);
             }
         }
         
-        logCloseFile();
+        logCloseFile_single();
         
         mvprintw (10 + printw_offset, 0,
                   "  Current Frequency %0.2f MHz (Max of below)\n", TRUE_CPU_FREQ);
