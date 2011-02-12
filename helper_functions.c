@@ -370,7 +370,7 @@ void Print_Information_Processor()
     //Info from page 641 of Intel Manual 3B
     //Extended model and Model can help determine the right cpu
     printf("i7z DEBUG: msr = Model Specific Register\n");
-    if (proc_info.family == 0x6)
+    if (proc_info.family >= 0x6)
     {
         if (proc_info.extended_model == 0x1)
         {
@@ -385,7 +385,7 @@ void Print_Information_Processor()
                 break;
             default:
                 printf ("i7z DEBUG: Unknown processor, not exactly based on Nehalem\n");
-                exit (1);
+                //exit (1);
             }
         } else if (proc_info.extended_model == 0x2)
         {
@@ -400,11 +400,11 @@ void Print_Information_Processor()
                 break;
             default:
                 printf ("i7z DEBUG: Unknown processor, not exactly based on Nehalem\n");
-                exit (1);
+                //exit (1);
             }
         } else {
             printf ("i7z DEBUG: Unknown processor, not exactly based on Nehalem\n");
-            exit (1);
+            //exit (1);
         }
     } else {
         printf ("i7z DEBUG: Unknown processor, not exactly based on Nehalem\n");
