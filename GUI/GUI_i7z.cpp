@@ -48,10 +48,14 @@ unsigned int numCPUs;
 void Construct_Socket_Information_in_GUI(unsigned int *numCPUs) {
     socket_0.max_cpu=0;
     socket_0.socket_num=0;
-    socket_0.processor_num={-1,-1,-1,-1,-1,-1,-1,-1};
+    int i;
+    for(i=0;i < 8; i++)
+        socket_0.processor_num[i]=-1;
     socket_1.max_cpu=0;
     socket_1.socket_num=1;
-    socket_1.processor_num={-1,-1,-1,-1,-1,-1,-1,-1};
+    
+    for(i=0;i < 8; i++)
+        socket_1.processor_num[i]=-1;
 
     construct_CPU_Heirarchy_info(&chi);
     construct_sibling_list(&chi);
