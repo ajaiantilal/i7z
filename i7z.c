@@ -62,6 +62,29 @@ void logCpuFreq_single(float value)
 	fprintf(fp_log_file,"%f\t",value);
 }
 
+void logCpuFreq_single_c(char* value)
+{
+    //below when just logging
+    if(prog_options.logging==1)
+	fprintf(fp_log_file,"%s\n",value); //newline, replace \n with \t to get everything separated with tabs
+   
+    //below when appending
+    if(prog_options.logging==2)
+	fprintf(fp_log_file,"%s\t",value);
+}
+
+void logCpuFreq_single_d(int value)
+{
+    //below when just logging
+    if(prog_options.logging==1)
+	fprintf(fp_log_file,"%d\n",value); //newline, replace \n with \t to get everything separated with tabs
+   
+    //below when appending
+    if(prog_options.logging==2)
+	fprintf(fp_log_file,"%d\t",value);
+}
+
+
 // For dual socket make filename based on the socket number
 void logOpenFile_dual(int socket_num)
 {
@@ -121,6 +144,50 @@ void logCpuFreq_dual(float value,int socket_num)
 		//below when appending
 		if(prog_options.logging==2)
 		fprintf(fp_log_file2,"%f\t",value);
+	}
+}
+
+void logCpuFreq_dual_c(char* value,int socket_num)
+{
+	if(socket_num==0){
+		//below when just logging
+		if(prog_options.logging==1)
+		fprintf(fp_log_file1,"%s\n",value); //newline, replace \n with \t to get everything separated with tabs
+	   
+		//below when appending
+		if(prog_options.logging==2)
+		fprintf(fp_log_file1,"%s\t",value);
+	}
+	if(socket_num==1){
+		//below when just logging
+		if(prog_options.logging==1)
+		fprintf(fp_log_file2,"%s\n",value); //newline, replace \n with \t to get everything separated with tabs
+	   
+		//below when appending
+		if(prog_options.logging==2)
+		fprintf(fp_log_file2,"%s\t",value);
+	}
+}
+
+void logCpuFreq_dual_d(int value,int socket_num)
+{
+	if(socket_num==0){
+		//below when just logging
+		if(prog_options.logging==1)
+		fprintf(fp_log_file1,"%d\n",value); //newline, replace \n with \t to get everything separated with tabs
+	   
+		//below when appending
+		if(prog_options.logging==2)
+		fprintf(fp_log_file1,"%d\t",value);
+	}
+	if(socket_num==1){
+		//below when just logging
+		if(prog_options.logging==1)
+		fprintf(fp_log_file2,"%d\n",value); //newline, replace \n with \t to get everything separated with tabs
+	   
+		//below when appending
+		if(prog_options.logging==2)
+		fprintf(fp_log_file2,"%d\t",value);
 	}
 }
 

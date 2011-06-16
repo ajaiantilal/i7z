@@ -489,8 +489,11 @@ void print_i7z_socket(struct cpu_socket_info socket_0, int printw_offset, int PL
 
         TRUE_CPU_FREQ = 0;
 
-		logOpenFile_dual(socket_0.socket_num);
-
+        logOpenFile_dual(socket_0.socket_num);
+        
+        time_t time_to_save;
+        logCpuFreq_dual_d(time(&time_to_save), socket_0.socket_num);
+        
         for (ii = 0; ii < numCPUs; ii++)
         {
             assert(ii < MAX_SK_PROCESSORS);

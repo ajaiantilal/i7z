@@ -478,6 +478,9 @@ void print_i7z_socket_single(struct cpu_socket_info socket_0, int printw_offset,
         
         logOpenFile_single();
         
+        time_t time_to_save;
+        logCpuFreq_single_d(time(&time_to_save));
+        
         for (ii = 0; ii < numCPUs; ii++) {
             assert(ii < MAX_SK_PROCESSORS);
             i = core_list[ii];
@@ -485,7 +488,7 @@ void print_i7z_socket_single(struct cpu_socket_info socket_0, int printw_offset,
                 TRUE_CPU_FREQ = _FREQ[i];
             }
             if ( (print_core[ii]) && !isinf(_FREQ[i]) ) {
-        		logCpuFreq_single(_FREQ[i]);
+                logCpuFreq_single(_FREQ[i]);
             }
         }
         
