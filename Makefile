@@ -28,7 +28,7 @@ endif
 
 CC       = gcc 
 
-LDFLAGS  = -lncurses -lpthread
+LDFLAGS  = -lncurses -lpthread -lrt
 INCLUDEFLAGS = 
 
 OBJS = helper_functions

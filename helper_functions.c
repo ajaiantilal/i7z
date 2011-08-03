@@ -410,7 +410,6 @@ void Print_Information_Processor(bool* nehalem, bool* sandy_bridge)
                 printf ("i7z DEBUG: Unknown processor, not exactly based on Nehalem\n");
                 //exit (1);
             }
-	    printf("setting nehalem");
    	    *nehalem = true;
 	    *sandy_bridge = false;
         } else if (proc_info.extended_model == 0x2)

@@ -33,6 +33,8 @@ int Read_Thermal_Status_CPU(int cpu_num);
 extern struct program_options prog_options;
 extern FILE *fp_log_file;
 
+struct timespec global_ts;
+
 void print_i7z_socket_single(struct cpu_socket_info socket_0, int printw_offset, int PLATFORM_INFO_MSR,  int PLATFORM_INFO_MSR_high,  int PLATFORM_INFO_MSR_low,
                              int* online_cpus, double cpu_freq_cpuinfo,  struct timespec one_second_sleep, char TURBO_MODE,
                              char* HT_ON_str, int* kk_1, U_L_L_I * old_val_CORE, U_L_L_I * old_val_REF, U_L_L_I * old_val_C3, U_L_L_I * old_val_C6, U_L_L_I * old_val_C7,
@@ -553,7 +555,9 @@ void print_i7z_socket_single(struct cpu_socket_info socket_0, int printw_offset,
         logOpenFile_single();
         
         time_t time_to_save;
-        logCpuFreq_single_d(time(&time_to_save));
+        //logCpuFreq_single_d(time(&time_to_save));
+        clock_gettime(CLOCK_REALTIME, &global_ts);
+        logCpuFreq_single( (float)global_ts.tv_sec + (float)global_ts.tv_nsec*10e-9);
         
         for (ii = 0; ii < numCPUs; ii++) {
             assert(ii < MAX_SK_PROCESSORS);

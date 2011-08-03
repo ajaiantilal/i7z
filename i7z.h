@@ -7,6 +7,8 @@
  *
  * ----------------------------------------------------------------------- */
 
+#include <sys/time.h>
+
 #define i7z_VERSION_INFO "svn-r50-(1-1-2011)"
 
 #define CPU_FREQUENCY_LOGGING_FILE_single "cpu_freq_log.txt"

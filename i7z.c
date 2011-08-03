@@ -230,7 +230,7 @@ int main (int argc, char **argv)
 
     Print_Information_Processor (&prog_options.i7_version.nehalem, &prog_options.i7_version.sandy_bridge);
 
-	printf("nehalem %d, sandy brdige %d\n", prog_options.i7_version.nehalem, prog_options.i7_version.sandy_bridge);
+//	printf("nehalem %d, sandy brdige %d\n", prog_options.i7_version.nehalem, prog_options.i7_version.sandy_bridge);
 
     Test_Or_Make_MSR_DEVICE_FILES ();
 
