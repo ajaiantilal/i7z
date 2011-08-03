@@ -31,6 +31,7 @@
 #include <sys/time.h>
 #include <time.h>
 #include <assert.h>
+#include <math.h>
 #include "i7z.h"
 
 //#define ULLONG_MAX 18446744073709551615
@@ -40,6 +41,7 @@ extern struct program_options prog_options;
 /////////////////////////////////////////READ TEMPERATURE////////////////////////////////////////////
 #define IA32_THERM_STATUS 0x19C
 #define IA32_TEMPERATURE_TARGET 0x1a2
+#define IA32_PACKAGE_THERM_STATUS 0x1b1
 
 int Get_Bits_Value(unsigned long val,int highbit, int lowbit){ 
 	unsigned long data = val;
@@ -51,17 +53,21 @@ int Get_Bits_Value(unsigned long val,int highbit, int lowbit){
 	return(data);
 }
 
-
+// a nice document to read is 322683.pdf from intel
 int Read_Thermal_Status_CPU(int cpu_num){
 	int error_indx;
 	unsigned long val= get_msr_value(cpu_num,IA32_THERM_STATUS,63,0,&error_indx);
 	int digital_readout = Get_Bits_Value(val,23,16);
-    
-	val= get_msr_value(cpu_num,IA32_TEMPERATURE_TARGET,63,0,&error_indx);
-	int PROCHOT_temp = Get_Bits_Value(val,24,16);
+	bool thermal_status = Get_Bits_Value(val,32,31);
+
+        val= get_msr_value(cpu_num,IA32_TEMPERATURE_TARGET,63,0,&error_indx);
+        int PROCHOT_temp = Get_Bits_Value(val,23,16);
     
 	//temperature is prochot - digital readout
-	return(PROCHOT_temp - digital_readout);
+	if (thermal_status)
+	  return(PROCHOT_temp - digital_readout);
+	else
+	  return(-1);
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -337,7 +343,8 @@ void Print_Version_Information()
 }
 
 
-void Print_Information_Processor() 
+//sets whether its nehalem or sandy bridge
+void Print_Information_Processor(bool* nehalem, bool* sandy_bridge) 
 {
     struct family_info proc_info;
 
@@ -369,6 +376,22 @@ void Print_Information_Processor()
     //check if its nehalem or exit
     //Info from page 641 of Intel Manual 3B
     //Extended model and Model can help determine the right cpu
+
+    //furthermore from pdf 241618.pdf from intel
+    //page 24, got the following info
+
+    //extended model is either 0x1 or 0x2
+    //check on model number as follows
+    //extended model, model no - processor type
+    //0x1, 0xA - i7, 45nm
+    //0x1, 0xE - i7, i5, Xeon, 45nm
+    //0x2, 0xE - Xeon MP, 45nm //e.g. x75xx processors
+    //0x2, 0xF - Xeon MP, 32nm //e.g. e7-48xx processors 
+    //0x2, 0xC - i7, Xeon, 32nm
+    //0x2, 0x5 - i3, i5, i7 mobile processors, 32nm
+    //0x2, 0xA - i7, 32nm
+
+
     printf("i7z DEBUG: msr = Model Specific Register\n");
     if (proc_info.family >= 0x6)
     {
@@ -377,27 +400,53 @@ void Print_Information_Processor()
             switch (proc_info.model)
             {
             case 0xA:
-                printf ("i7z DEBUG: Detected a nehalem (i7)\n");
+                printf ("i7z DEBUG: Detected a nehalem (i7) - 45nm\n");
                 break;
             case 0xE:
             case 0xF:
-                printf ("i7z DEBUG: Detected a nehalem (i7/i5)\n");
-                break;
+                printf ("i7z DEBUG: Detected a nehalem (i7/i5/Xeon) - 45nm\n");
+	        break;
             default:
                 printf ("i7z DEBUG: Unknown processor, not exactly based on Nehalem\n");
                 //exit (1);
             }
+	    printf("setting nehalem");
+   	    *nehalem = true;
+	    *sandy_bridge = false;
         } else if (proc_info.extended_model == 0x2)
         {
             switch (proc_info.model)
             {
             case 0xE:
-                printf ("i7z DEBUG: Detected a nehalem (Xeon)\n");
+                printf ("i7z DEBUG: Detected a Xeon MP - 45nm (7500, 6500 series)\n");
+		*nehalem = true;
+  	    	*sandy_bridge = false;
+                break;
+            case 0xF:
+                printf ("i7z DEBUG: Detected a Xeon MP - 32nm (E7 series)\n");
+	        *nehalem = true;
+  	        *sandy_bridge = false;
+                break;
+            case 0xC:
+	        *nehalem = true;
+  	        *sandy_bridge = false;
+                printf ("i7z DEBUG: Detected an i7/Xeon - 32 nm (westmere)\n");
                 break;
             case 0x5:
-            case 0xC:
-                printf ("i7z DEBUG: Detected a nehalem (32nm Westmere)\n");
-                break;
+	        *nehalem = true;
+  	        *sandy_bridge = false;
+	        printf ("i7z DEBUG: Detected an i3/i5/i7 mobile processor - 32nm (westmere)\n");
+	        break;
+            case 0xD:
+	        *nehalem = false;
+	  	*sandy_bridge = true;
+	        printf ("i7z DEBUG: Detected an i7 - 32nm\n");
+	        break;
+            case 0xA:
+	        *nehalem = false;
+	  	*sandy_bridge = true;
+	        printf ("i7z DEBUG: Detected an i7 - 32nm\n");
+	        break;
             default:
                 printf ("i7z DEBUG: Unknown processor, not exactly based on Nehalem\n");
                 //exit (1);

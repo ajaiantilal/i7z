@@ -25,8 +25,16 @@
 #define MAX_HI_PROCESSORS    MAX_PROCESSORS
 #define MAX_SK_PROCESSORS    (MAX_PROCESSORS/4)
 
+//add newer version of core processors here, this is basically to change any things that are done to the register
+//seems like sandybridge doesnot use the IA32_TEMPERATURE_TARGET in Read_Thermal_Status_CPU
+struct core_i7_version{
+    bool nehalem;
+    bool sandy_bridge;
+};
+
 struct program_options{
     int logging; //0=no logging, 1=logging, 2=appending
+    struct core_i7_version i7_version;    
 };
 
 /// Logging Functions
@@ -127,7 +135,7 @@ void get_siblings_list(struct cpu_heirarchy_info* chi);
 void get_package_ids(struct cpu_heirarchy_info* chi);
 void print_cpu_list(struct cpu_heirarchy_info chi);
 void construct_cpu_hierarchy(struct cpu_heirarchy_info *chi);
-void Print_Information_Processor();
+void Print_Information_Processor(bool*, bool*);
 void Test_Or_Make_MSR_DEVICE_FILES();
 
 
@@ -149,9 +157,9 @@ void Print_Version_Information();
 #define RETURN_IF_TRUE(cond) if(cond) return;
 
 //due to the fact that sometimes 100.0>100,  the below macro checks till 101
-#define THRESHOLD_BETWEEN_0_100(cond) (cond>=-1 && cond <=101 && !isinf(cond) && !isnan(cond))? cond: __builtin_inf()
+#define THRESHOLD_BETWEEN_0_100(cond) (cond>=-1 && cond <=105 && !isinf(cond) && !isnan(cond))? cond: __builtin_inf()
 
 //due to the fact that sometimes 100.0>100,  the below macro checks till 101
-#define IS_THIS_BETWEEN_0_100(cond) (cond>=-1 && cond <=101 && !isinf(cond) && !isnan(cond))? 1: 0
+#define IS_THIS_BETWEEN_0_100(cond) (cond>=-1 && cond <=105 && !isinf(cond) && !isnan(cond))? 1: 0
 
 #define THRESHOLD_BETWEEN_0_6000(cond) (cond>=0 && cond <=10000)? cond: __builtin_inf()

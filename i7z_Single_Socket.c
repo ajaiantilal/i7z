@@ -35,10 +35,10 @@ extern FILE *fp_log_file;
 
 void print_i7z_socket_single(struct cpu_socket_info socket_0, int printw_offset, int PLATFORM_INFO_MSR,  int PLATFORM_INFO_MSR_high,  int PLATFORM_INFO_MSR_low,
                              int* online_cpus, double cpu_freq_cpuinfo,  struct timespec one_second_sleep, char TURBO_MODE,
-                             char* HT_ON_str, int* kk_1, U_L_L_I * old_val_CORE, U_L_L_I * old_val_REF, U_L_L_I * old_val_C3, U_L_L_I * old_val_C6,
+                             char* HT_ON_str, int* kk_1, U_L_L_I * old_val_CORE, U_L_L_I * old_val_REF, U_L_L_I * old_val_C3, U_L_L_I * old_val_C6, U_L_L_I * old_val_C7,
                              U_L_L_I * old_TSC, int estimated_mhz,  U_L_L_I * new_val_CORE,  U_L_L_I * new_val_REF,  U_L_L_I * new_val_C3,
-                             U_L_L_I * new_val_C6,  U_L_L_I * new_TSC,  double* _FREQ, double* _MULT, long double * C0_time, long double * C1_time,
-                             long double * C3_time,	long double * C6_time, struct timeval* tvstart, struct timeval* tvstop, int *max_observed_cpu);
+                             U_L_L_I * new_val_C6,  U_L_L_I * new_val_C7,  U_L_L_I * new_TSC,  double* _FREQ, double* _MULT, long double * C0_time, long double * C1_time,
+                             long double * C3_time,	long double * C6_time, long double * C7_time, struct timeval* tvstart, struct timeval* tvstop, int *max_observed_cpu);
 
 void print_i7z_single ();
 
@@ -55,6 +55,12 @@ int Single_Socket ()
 					 * for NCURSES                        */
 
     printf ("i7z DEBUG: In i7z Single_Socket()\n");
+     
+    if (prog_options.i7_version.sandy_bridge)
+	printf ("i7z DEBUG: guessing Sandy Bridge\n");
+    else
+	printf ("i7z DEBUG: guessing Nehalem\n");
+
 
     sleep (3);
 
@@ -72,10 +78,10 @@ int Single_Socket ()
 
 void print_i7z_socket_single(struct cpu_socket_info socket_0, int printw_offset, int PLATFORM_INFO_MSR,  int PLATFORM_INFO_MSR_high,  int PLATFORM_INFO_MSR_low,
                              int* online_cpus, double cpu_freq_cpuinfo,  struct timespec one_second_sleep, char TURBO_MODE,
-                             char* HT_ON_str, int* kk_1, U_L_L_I * old_val_CORE, U_L_L_I * old_val_REF, U_L_L_I * old_val_C3, U_L_L_I * old_val_C6,
+                             char* HT_ON_str, int* kk_1, U_L_L_I * old_val_CORE, U_L_L_I * old_val_REF, U_L_L_I * old_val_C3, U_L_L_I * old_val_C6, U_L_L_I * old_val_C7,
                              U_L_L_I * old_TSC, int estimated_mhz,  U_L_L_I * new_val_CORE,  U_L_L_I * new_val_REF,  U_L_L_I * new_val_C3,
-                             U_L_L_I * new_val_C6,  U_L_L_I * new_TSC,  double* _FREQ, double* _MULT, long double * C0_time, long double * C1_time,
-                             long double * C3_time,	long double * C6_time, struct timeval* tvstart, struct timeval* tvstop, int *max_observed_cpu)
+                             U_L_L_I * new_val_C6,  U_L_L_I * new_val_C7,  U_L_L_I * new_TSC,  double* _FREQ, double* _MULT, long double * C0_time, long double * C1_time,
+                             long double * C3_time,	long double * C6_time, long double * C7_time, struct timeval* tvstart, struct timeval* tvstop, int *max_observed_cpu)
 {
 	int numPhysicalCores, numLogicalCores;
 	double TRUE_CPU_FREQ;
@@ -98,7 +104,7 @@ void print_i7z_socket_single(struct cpu_socket_info socket_0, int printw_offset,
     int* core_list;
     unsigned long int IA32_MPERF, IA32_APERF;
     int CPU_Multiplier, error_indx;
-    unsigned long long int CPU_CLK_UNHALTED_CORE, CPU_CLK_UNHALTED_REF, CPU_CLK_C3, CPU_CLK_C6, CPU_CLK_C1;
+    unsigned long long int CPU_CLK_UNHALTED_CORE, CPU_CLK_UNHALTED_REF, CPU_CLK_C3, CPU_CLK_C6, CPU_CLK_C1, CPU_CLK_C7;
     //current blck value
     float BLCK;
 
@@ -307,13 +313,23 @@ void print_i7z_socket_single(struct cpu_socket_info socket_0, int printw_offset,
                 SET_IF_TRUE(error_indx,online_cpus[i],-1);
                 CONTINUE_IF_TRUE(online_cpus[i]==-1);
 
+		if(prog_options.i7_version.sandy_bridge){
+			//table b-20 in 325384 and only for sandy bridge
+		        old_val_C7[ii] = get_msr_value (CPU_NUM, 1022, 63, 0, &error_indx);
+		        SET_IF_TRUE(error_indx,online_cpus[i],-1);
+		        CONTINUE_IF_TRUE(online_cpus[i]==-1);
+		}
+
                 old_TSC[ii] = rdtsc ();
             }
         }
         (*kk_1)++;
         nanosleep (&one_second_sleep, NULL);
-        mvprintw (11 + printw_offset, 0, "\tCore [core-id]  :Actual Freq (Mult.)\t  C0%%   Halt(C1)%%  C3 %%   C6 %%  Temp\n");
-
+	if(prog_options.i7_version.sandy_bridge){
+            mvprintw (11 + printw_offset, 0, "\tCore [core-id]  :Actual Freq (Mult.)\t  C0%%   Halt(C1)%%  C3 %%   C6 %%   C7 %%  Temp\n");
+	}else{
+            mvprintw (11 + printw_offset, 0, "\tCore [core-id]  :Actual Freq (Mult.)\t  C0%%   Halt(C1)%%  C3 %%   C6 %%  Temp\n");
+	}
         //estimate the CPU speed
         estimated_mhz = estimate_MHz ();
 
@@ -342,6 +358,12 @@ void print_i7z_socket_single(struct cpu_socket_info socket_0, int printw_offset,
             new_val_C6[ii] = get_msr_value (CPU_NUM, 1021, 63, 0, &error_indx);
             SET_IF_TRUE(error_indx,online_cpus[i],-1);
             CONTINUE_IF_TRUE(online_cpus[i]==-1);
+		
+	    if(prog_options.i7_version.sandy_bridge){
+		new_val_C7[ii] = get_msr_value (CPU_NUM, 1022, 63, 0, &error_indx);
+		SET_IF_TRUE(error_indx,online_cpus[i],-1);
+	        CONTINUE_IF_TRUE(online_cpus[i]==-1);		
+	    }
 
             new_TSC[ii] = rdtsc ();
 
@@ -376,6 +398,14 @@ void print_i7z_socket_single(struct cpu_socket_info socket_0, int printw_offset,
                 CPU_CLK_C6 = new_val_C6[ii] - old_val_C6[ii];
             }
 
+	    if(prog_options.i7_version.sandy_bridge){
+	        if (old_val_C7[ii] > new_val_C7[ii]) {			//handle overflow
+                    CPU_CLK_C7 = (UINT64_MAX - old_val_C7[ii]) + new_val_C7[ii];
+                } else {
+                    CPU_CLK_C7 = new_val_C7[ii] - old_val_C7[ii];
+                }
+	    }
+
             _FREQ[ii] =
                 THRESHOLD_BETWEEN_0_6000(estimated_mhz * ((long double) CPU_CLK_UNHALTED_CORE /
                                          (long double) CPU_CLK_UNHALTED_REF));
@@ -389,6 +419,11 @@ void print_i7z_socket_single(struct cpu_socket_info socket_0, int printw_offset,
                            (long double) (new_TSC[ii] - old_TSC[ii]));
             C6_time[ii] = ((long double) CPU_CLK_C6 /
                            (long double) (new_TSC[ii] - old_TSC[ii]));
+
+	    if(prog_options.i7_version.sandy_bridge){
+	        C7_time[ii] = ((long double) CPU_CLK_C7 /
+                               (long double) (new_TSC[ii] - old_TSC[ii]));
+	    }
 
             if (C0_time[ii] < 1e-2) {
                 if (C0_time[ii] > 1e-4) {
@@ -418,41 +453,80 @@ void print_i7z_socket_single(struct cpu_socket_info socket_0, int printw_offset,
                     C6_time[ii] = 0;
                 }
             }
-        }
-
+	    if(prog_options.i7_version.sandy_bridge){
+	        if (C7_time[ii] < 1e-2) {
+                   if (C7_time[ii] > 1e-4) {
+                       C7_time[ii] = 0.01;
+                   } else {
+                       C7_time[ii] = 0;
+                   }
+                }
+	    }
+	}
         //CHECK IF ALL COUNTERS ARE CORRECT AND NO GARBAGE VALUES ARE PRESENT
         //If there is any garbage values set print_core[i] to 0
         for (ii = 0; ii <  numCPUs; ii++) {
             assert(ii < MAX_SK_PROCESSORS);
             i = core_list[ii];
-            if ( !IS_THIS_BETWEEN_0_100(C0_time[i] * 100) ||
+	    if(prog_options.i7_version.sandy_bridge){
+	      if ( !IS_THIS_BETWEEN_0_100(C0_time[i] * 100) ||
+                    !IS_THIS_BETWEEN_0_100(C1_time[i] * 100 - (C3_time[i] + C6_time[i]) * 100) ||
+                    !IS_THIS_BETWEEN_0_100(C3_time[i] * 100) ||
+                    !IS_THIS_BETWEEN_0_100(C6_time[i] * 100) ||
+                    !IS_THIS_BETWEEN_0_100(C7_time[i] * 100) ||
+                    isinf(_FREQ[i]) )
+                  print_core[ii]=0;
+              else
+                  print_core[ii]=1;
+	    }else{
+	      if ( !IS_THIS_BETWEEN_0_100(C0_time[i] * 100) ||
                     !IS_THIS_BETWEEN_0_100(C1_time[i] * 100 - (C3_time[i] + C6_time[i]) * 100) ||
                     !IS_THIS_BETWEEN_0_100(C3_time[i] * 100) ||
                     !IS_THIS_BETWEEN_0_100(C6_time[i] * 100) ||
                     isinf(_FREQ[i]) )
-                print_core[ii]=0;
-            else
-                print_core[ii]=1;
+                  print_core[ii]=0;
+              else
+                  print_core[ii]=1;
+	    }
         }
 
         //Now print the information about the cores. Print garbage values message if there is garbage
         for (ii = 0; ii <  numCPUs; ii++) {
             assert(ii < MAX_SK_PROCESSORS);
             i = core_list[ii];
-            //there is a bit of leeway to be had as the total counts might deviate
-            //if this happens c1_time might be negative so just adjust so that it is thresholded to 0
-            c1_time = C1_time[i] * 100 - (C3_time[i] + C6_time[i]) * 100;
-            if (!isnan(c1_time) && !isinf(c1_time)) {
-                if (c1_time <= 0) {
-                    c1_time=0;
-                }
-            }
-            if (print_core[ii])
-                mvprintw (12 + ii + printw_offset, 0, "\tCore %d [%d]:\t  %0.2f (%.2fx)\t%4.3Lg\t%4.3Lg\t%4.3Lg\t%4.3Lg\t%d\n",
+
+	    if(prog_options.i7_version.sandy_bridge){
+	        //there is a bit of leeway to be had as the total counts might deviate
+	        //if this happens c1_time might be negative so just adjust so that it is thresholded to 0
+	        c1_time = C1_time[i] * 100 - (C3_time[i] + C6_time[i] + C7_time[i]) * 100;
+	        if (!isnan(c1_time) && !isinf(c1_time)) {
+                    if (c1_time <= 0) {
+		    c1_time=0;
+                    }
+	        }
+	        if (print_core[ii])
+                    mvprintw (12 + ii + printw_offset, 0, "\tCore %d [%d]:\t  %0.2f (%.2fx)\t%4.3Lg\t%4.3Lg\t%4.3Lg\t%4.3Lg\t%4.3Lg\t%d\n",
+                          ii + 1, core_list[ii], _FREQ[i], _MULT[i], THRESHOLD_BETWEEN_0_100(C0_time[i] * 100),
+                          THRESHOLD_BETWEEN_0_100(c1_time), THRESHOLD_BETWEEN_0_100(C3_time[i] * 100), THRESHOLD_BETWEEN_0_100(C6_time[i] * 100),THRESHOLD_BETWEEN_0_100(C7_time[i] * 100),
+			  Read_Thermal_Status_CPU(core_list[ii]));	//C0_time[i]*100+C1_time[i]*100 around 100
+	        else
+                    mvprintw (12 + ii + printw_offset, 0, "\tCore %d [%d]:\t  Garbage Values\n", ii + 1, core_list[ii]);
+	    }else{
+	        //there is a bit of leeway to be had as the total counts might deviate
+	        //if this happens c1_time might be negative so just adjust so that it is thresholded to 0
+	        c1_time = C1_time[i] * 100 - (C3_time[i] + C6_time[i]) * 100;
+	        if (!isnan(c1_time) && !isinf(c1_time)) {
+                    if (c1_time <= 0) {
+		    c1_time=0;
+                    }
+	        }
+	        if (print_core[ii])
+                    mvprintw (12 + ii + printw_offset, 0, "\tCore %d [%d]:\t  %0.2f (%.2fx)\t%4.3Lg\t%4.3Lg\t%4.3Lg\t%4.3Lg\t%d\n",
                           ii + 1, core_list[ii], _FREQ[i], _MULT[i], THRESHOLD_BETWEEN_0_100(C0_time[i] * 100),
                           THRESHOLD_BETWEEN_0_100(c1_time), THRESHOLD_BETWEEN_0_100(C3_time[i] * 100), THRESHOLD_BETWEEN_0_100(C6_time[i] * 100),Read_Thermal_Status_CPU(core_list[ii]));	//C0_time[i]*100+C1_time[i]*100 around 100
-            else
-                mvprintw (12 + ii + printw_offset, 0, "\tCore %d [%d]:\t  Garbage Values\n", ii + 1, core_list[ii]);
+	        else
+                    mvprintw (12 + ii + printw_offset, 0, "\tCore %d [%d]:\t  Garbage Values\n", ii + 1, core_list[ii]);
+	    }
         }
 
         /*k=0;
@@ -495,7 +569,7 @@ void print_i7z_socket_single(struct cpu_socket_info socket_0, int printw_offset,
         logCloseFile_single();
         
         mvprintw (10 + printw_offset, 0,
-                  "  Current Frequency %0.2f MHz (Max of below)\n", TRUE_CPU_FREQ);
+                  "  Current Frequency %0.2f MHz [%0.2f x %0.2f] (Max of below)\n", TRUE_CPU_FREQ, BLCK, TRUE_CPU_FREQ/BLCK);
 
         refresh ();
 
@@ -506,6 +580,11 @@ void print_i7z_socket_single(struct cpu_socket_info socket_0, int printw_offset,
         memcpy (old_val_REF, new_val_REF, sizeof (*old_val_REF) * numCPUs);
         memcpy (old_val_C3, new_val_C3, sizeof (*old_val_C3) * numCPUs);
         memcpy (old_val_C6, new_val_C6, sizeof (*old_val_C6) * numCPUs);
+
+	if(prog_options.i7_version.sandy_bridge){
+	    memcpy (old_val_C7, new_val_C7, sizeof (*old_val_C7) * numCPUs);
+	}
+
         memcpy (tvstart, tvstop, sizeof (*tvstart) * numCPUs);
         memcpy (old_TSC, new_TSC, sizeof (*old_TSC) * numCPUs);
     } else {
@@ -572,10 +651,11 @@ void print_i7z_single ()
     unsigned long long int old_val_REF[2][numCPUs_max], new_val_REF[2][numCPUs_max];
     unsigned long long int old_val_C3[2][numCPUs_max], new_val_C3[2][numCPUs_max];
     unsigned long long int old_val_C6[2][numCPUs_max], new_val_C6[2][numCPUs_max];
+    unsigned long long int old_val_C7[2][numCPUs_max], new_val_C7[2][numCPUs_max];
 
     unsigned long long int old_TSC[2][numCPUs_max], new_TSC[2][numCPUs_max];
     long double C0_time[2][numCPUs_max], C1_time[2][numCPUs_max],
-    C3_time[2][numCPUs_max], C6_time[2][numCPUs_max];
+    C3_time[2][numCPUs_max], C6_time[2][numCPUs_max], C7_time[2][numCPUs_max];
     double _FREQ[2][numCPUs_max], _MULT[2][numCPUs_max];
     struct timeval tvstart[2][numCPUs_max], tvstop[2][numCPUs_max];
 
@@ -639,18 +719,18 @@ void print_i7z_single ()
             socket_num=0;
             print_i7z_socket_single(socket_0, printw_offset, PLATFORM_INFO_MSR,  PLATFORM_INFO_MSR_high, PLATFORM_INFO_MSR_low,
                                 online_cpus, cpu_freq_cpuinfo, one_second_sleep, TURBO_MODE, HT_ON_str, &kk_1, old_val_CORE[socket_num],
-                                old_val_REF[socket_num], old_val_C3[socket_num], old_val_C6[socket_num],
+                                old_val_REF[socket_num], old_val_C3[socket_num], old_val_C6[socket_num],old_val_C7[socket_num],
                                 old_TSC[socket_num], estimated_mhz, new_val_CORE[socket_num], new_val_REF[socket_num], new_val_C3[socket_num],
-                                new_val_C6[socket_num], new_TSC[socket_num], _FREQ[socket_num], _MULT[socket_num], C0_time[socket_num], C1_time[socket_num],
-                                C3_time[socket_num], C6_time[socket_num], tvstart[socket_num], tvstop[socket_num], &max_cpus_observed);
+                                new_val_C6[socket_num],new_val_C7[socket_num], new_TSC[socket_num], _FREQ[socket_num], _MULT[socket_num], C0_time[socket_num], C1_time[socket_num],
+                                C3_time[socket_num], C6_time[socket_num],C7_time[socket_num], tvstart[socket_num], tvstop[socket_num], &max_cpus_observed);
 	}else{
 	    socket_num=1;
 	    print_i7z_socket_single(socket_1, printw_offset, PLATFORM_INFO_MSR,  PLATFORM_INFO_MSR_high, PLATFORM_INFO_MSR_low,
 		                online_cpus, cpu_freq_cpuinfo, one_second_sleep, TURBO_MODE, HT_ON_str, &kk_1, old_val_CORE[socket_num],
-                                old_val_REF[socket_num], old_val_C3[socket_num], old_val_C6[socket_num],
+                                old_val_REF[socket_num], old_val_C3[socket_num], old_val_C6[socket_num],old_val_C7[socket_num],
                                 old_TSC[socket_num], estimated_mhz, new_val_CORE[socket_num], new_val_REF[socket_num], new_val_C3[socket_num],
-                                new_val_C6[socket_num], new_TSC[socket_num], _FREQ[socket_num], _MULT[socket_num], C0_time[socket_num], C1_time[socket_num],
-                                C3_time[socket_num], C6_time[socket_num], tvstart[socket_num], tvstop[socket_num], &max_cpus_observed);
+                                new_val_C6[socket_num],new_val_C7[socket_num], new_TSC[socket_num], _FREQ[socket_num], _MULT[socket_num], C0_time[socket_num], C1_time[socket_num],
+                                C3_time[socket_num], C6_time[socket_num],C7_time[socket_num], tvstart[socket_num], tvstop[socket_num], &max_cpus_observed);
 	}
     }
 
