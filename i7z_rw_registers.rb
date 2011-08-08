@@ -88,17 +88,22 @@ def set_clock_modulation(mult)
 
 	mult = mult.to_i << 1
 	mult = mult | 0x10
-	command = "wrmsr 0x19a #{mult}"
-	print_command(command)
-	system(command)
+	
+	for i in (0..12)
+		status = "wrmsr  0x19a -p#{i} #{mult}"
+		print_command(status)
+		system(status)
+	end
 	get_clock_status()
 end
 
 def clock_disable()
 	val = 0x0
-	command = "wrmsr 0x19a #{val}"
-	print_command(command)
-	system(command)
+	for i in (0..12)
+		status = "wrmsr  0x19a -p#{i} #{val}"
+		print_command(status)
+		system(status)
+	end
 	get_clock_status()
 end	
 
