@@ -16,12 +16,28 @@ def print_command_list()
 	print "multiplier : examines the multipliers \n"
 	print "power : which prints current wattage of the system\n"
 	print "clock : allows for software clock modulation ( a form of throttling )\n"
+    print "system : allows to print some system info\n"
 	print "quit : which will quit the program or just do ctrl + c\n"
 end
 
 IA32_PERF_STATUS =  0x198  	#read only
 IA32_PERF_CTL = 0x199  		#read write
 IA32_MISC_ENABLE = 0x1a0
+
+def num_cores 
+    numcores = `cat /proc/cpuinfo | grep 'cpu cores' |head -n 1|sed 's/cpu cores\\s*:\\s//'`
+    return numcores
+end
+
+def nehalem_or_sandybridge
+    proc_type = `cat /proc/cpuinfo | grep flags |head -n 1| grep avx`
+    
+    if proc_type.chomp.length == 0
+        return 'Nehalem'
+    else 
+        return 'Sandy Bridge'
+    end
+end
 
 def turbo_command_list()
 	print "turbo : which examines the turbo status \n"
@@ -373,7 +389,12 @@ while(1)
 					end
 				else
 					clock_command_list()
-				end						
+				end					
+            when "system"
+                print "number of cores #{num_cores()}"
+                print "trying to distinguish between nehalem/sandy bridge via AVX support... #{nehalem_or_sandybridge}\n"
+            else
+                print_command_list()
 		end
 	end
 	
