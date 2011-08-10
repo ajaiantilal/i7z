@@ -124,7 +124,7 @@ def clock_disable()
 end	
 
 def print_command( str )
-	print "Running #{str} \n"
+	print "Running following command in sudo:  #{str} \n"
 end
 
 def print_turbo_status()
@@ -297,6 +297,15 @@ print "\n\nThis script is totally experimental \n"
 print "use it in superuser mode to get access to r/w access \n"
 print "also i need msr-tools installed so that rdmsr and wrmsr can work in sudo\n"
 print "write quit or ctrl+C to exit\n\n"
+print "Now for the blurb on why you might find this script useful:\n"
+print "Throttling cpu on battery is one place, some machines including W520\n"
+print "have a wierd bios which switches off turbo when machine is booted in\n"
+print "battery or some bios implement throttling even when the power is within limit\n"
+print "and this tool should allow you to manually set the multiplier\n"
+print "Whenever you run a command it will print out what goes in the background\n"
+print "like what registers were read/written etc, this should allow one to even\n"
+print "write different scripts to automatically run specifics multiplier in battery\n"
+print "power and other modes.\n\n"
 print_command_list()
 
 at_exit{print "exiting, thanks for using\n"}
