@@ -26,7 +26,7 @@ IA32_MISC_ENABLE = 0x1a0
 
 def num_cores 
     numcores = `cat /proc/cpuinfo | grep 'cpu cores' |head -n 1|sed 's/cpu cores\\s*:\\s//'`
-    return numcores
+    return numcores.to_i
 end
 
 def nehalem_or_sandybridge
@@ -115,7 +115,7 @@ end
 
 def clock_disable()
 	val = 0x0
-	for i in (0..12)
+	for i in (0..(num_cores()*2-1))
 		status = "wrmsr  0x19a -p#{i} #{val}"
 		print_command(status)
 		system(status)
@@ -209,7 +209,13 @@ def get_multiplier()
 	turbo6 = `rdmsr  0x1ad --decimal --bitfield 47:40`
 	print_command('rdmsr  0x1ad --decimal --bitfield 47:40')
 	
-	print "  Maximum turbo limit with 1/2/3/4/5/6 cores active is #{turbo1.chomp}/#{turbo2.chomp}/#{turbo3.chomp}/#{turbo4.chomp}/#{turbo5.chomp}/#{turbo6.chomp}\n"
+	if num_cores()>=5
+		print "  Maximum turbo limit with 1/2/3/4/5/6 cores active is #{turbo1.chomp}/#{turbo2.chomp}/#{turbo3.chomp}/#{turbo4.chomp}/#{turbo5.chomp}/#{turbo6.chomp}\n"
+	elsif (num_cores()<=4 && num_cores()>2)
+			print "  Maximum turbo limit with 1/2/3/4 cores active is #{turbo1.chomp}/#{turbo2.chomp}/#{turbo3.chomp}/#{turbo4.chomp}\n"
+	else
+			print "  Maximum turbo limit with 1/2 cores active is #{turbo1.chomp}/#{turbo2.chomp}\n"
+	end
 end
 
 def set_multiplier(mult)
@@ -228,7 +234,7 @@ def set_multiplier(mult)
 
 	else
 		print "Don't worry if it prints that some wrmsr error message; i dont know the number of cores on your current machine so trying from 0..12"
-		for i in (0..12)
+		for i in (0..(num_cores()*2-1))
 			status = "wrmsr  0x199 -p#{i} #{mult}"
 			print_command(status)
 			system(status)
@@ -257,7 +263,6 @@ def set_tdp(limit)
 	
 	status = "wrmsr  0x1ac #{tdp}"
 	print_command(status)
-	print "Doesnot seem to work on nehalem desktop\n"
 	system(status)	
 end
 
@@ -265,11 +270,10 @@ def set_tdc(limit)
 	status1 = `rdmsr  0x1ac --decimal`
 	print_command('rdmsr  0x1ac --decimal')
 	
-	tdc = (status1.to_i & 0xFFFFFFFFFFFF8000) | (0x8000) | (limit.to_i/0.125)  #set bits 30:16, as resolution is 1/8 of a watt/amp 
+	tdc = (status1.to_i & 0xFFFFFFFF8000FFFF) | (0x80000000) | ((limit.to_i/0.125).to_i << 16)  #set bits 30:16, as resolution is 1/8 of a watt/amp 
 	
 	status = "wrmsr  0x1ac #{tdc}"
 	print_command(status)
-	print "Doesnot seem to work on nehalem desktop\n"
 	system(status)	
 end
 
@@ -305,7 +309,8 @@ print "and this tool should allow you to manually set the multiplier\n"
 print "Whenever you run a command it will print out what goes in the background\n"
 print "like what registers were read/written etc, this should allow one to even\n"
 print "write different scripts to automatically run specifics multiplier in battery\n"
-print "power and other modes.\n\n"
+print "power and other modes.\n"
+print "msr-tools are needed. Furthermore \"modprobe msr\" on command line needs to be executed\n"
 print_command_list()
 
 at_exit{print "exiting, thanks for using\n"}
@@ -400,7 +405,7 @@ while(1)
 					clock_command_list()
 				end					
             when "system"
-                print "number of cores #{num_cores()}"
+                print "number of cores #{num_cores()}\n"
                 print "trying to distinguish between nehalem/sandy bridge via AVX support... #{nehalem_or_sandybridge}\n"
             else
                 print_command_list()
