@@ -9,7 +9,7 @@
 
 #include <sys/time.h>
 
-#define i7z_VERSION_INFO "svn-r50-(1-1-2011)"
+#define i7z_VERSION_INFO "svn-r61-(6-Sep-2011)"
 
 #define CPU_FREQUENCY_LOGGING_FILE_single "cpu_freq_log.txt"
 #define CPU_FREQUENCY_LOGGING_FILE_dual "cpu_freq_log_dual_%d.txt"
@@ -106,9 +106,7 @@ __asm__ __volatile__ ("rdtsc":"=a" (lo), "=d" (hi));
 
 void print_family_info (struct family_info *proc_info);
 
-#ifdef x64_BIT
 void get_vendor (char *vendor_string);
-#endif
 
 int turbo_status ();
 double cpufreq_info();

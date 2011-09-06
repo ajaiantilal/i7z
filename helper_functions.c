@@ -87,41 +87,40 @@ print_family_info (struct family_info *proc_info)
     //    printf("    Extended Family %d\n", proc_info->extended_family);
 }
 
+static inline void cpuid (unsigned int info, unsigned int *eax, unsigned int *ebx,
+                          unsigned int *ecx, unsigned int *edx)
+{
+    unsigned int _eax = info, _ebx, _ecx, _edx;
+    asm volatile ("mov %%ebx, %%edi;" // save ebx (for PIC)
+                  "cpuid;"
+                  "mov %%ebx, %%esi;" // pass to caller
+                  "mov %%edi, %%ebx;" // restore ebx
+                  :"+a" (_eax), "=S" (_ebx), "=c" (_ecx), "=d" (_edx)
+                  :      /* inputs: eax is handled above */
+                  :"edi" /* clobbers: we hit edi directly */);
+    if (eax) *eax = _eax;
+    if (ebx) *ebx = _ebx;
+    if (ecx) *ecx = _ecx;
+    if (edx) *edx = _edx;
+}
 
-#ifdef x64_BIT
 void  get_vendor (char *vendor_string)
 {
     //get vendor name
-    unsigned int b, c, d, e;
-    //  int i;
-    asm volatile ("mov %4, %%eax; "	// 0 into eax
-                  "cpuid;" "mov %%eax, %0;"	// eeax into b
-                  "mov %%ebx, %1;"	// eebx into c
-                  "mov %%edx, %2;"	// eeax into d
-                  "mov %%ecx, %3;"	// eeax into e
-              :"=r" (b), "=r" (c), "=r" (d), "=r" (e)	/* output */
-                          :"r" (0)	/* input */
-                          :"%eax", "%ebx", "%ecx", "%edx"	/* clobbered register, will be modifying inside the asm routine so dont use them */
-                         );
-    memcpy (vendor_string, &c, 4);
+    unsigned int a, b, c, d;
+    cpuid (0, &a, &b, &c, &d);
+    memcpy (vendor_string, &b, 4);
     memcpy (vendor_string + 4, &d, 4);
-    memcpy (vendor_string + 8, &e, 4);
+    memcpy (vendor_string + 8, &c, 4);
     vendor_string[12] = '\0';
     //        printf("Vendor %s\n",vendor_string);
 }
-#endif
 
 int turbo_status ()
 {
     //turbo state flag
     unsigned int eax;
-    //  int i;
-    asm volatile ("mov %1, %%eax; "	// 0 into eax
-                  "cpuid;" "mov %%eax, %0;"	// eeax into b
-              :"=r" (eax)	/* output */
-                          :"r" (6)	/* input */
-                          :"%eax"		/* clobbered register, will be modifying inside the asm routine so dont use them */
-                         );
+    cpuid (6, &eax, NULL, NULL, NULL);
 
     //printf("eax %d\n",(eax&0x2)>>1);
 
@@ -132,12 +131,7 @@ void get_familyinformation (struct family_info *proc_info)
 {
     //get info about CPU
     unsigned int b;
-    asm volatile ("mov %1, %%eax; "	// 0 into eax
-                  "cpuid;" "mov %%eax, %0;"	// eeax into b
-              :"=r" (b)	/* output */
-                          :"r" (1)	/* input */
-                          :"%eax"		/* clobbered register, will be modifying inside the asm routine so dont use them */
-                         );
+    cpuid (1, &b, NULL, NULL, NULL);
     //  printf ("eax %x\n", b);
     proc_info->stepping = b & 0x0000000F;	//bits 3:0
     proc_info->model = (b & 0x000000F0) >> 4;	//bits 7:4
@@ -175,7 +169,7 @@ double estimate_MHz ()
 
     /* we don't trust that this is any specific length of time */
     //1 sec will cause rdtsc to overlap multiple times perhaps. 100msecs is a good spot
-    usleep (100000);
+    usleep (10000);
 
     cycles[1] = rdtsc ();
     gettimeofday (&tvstop, &tz);
@@ -348,7 +342,6 @@ void Print_Information_Processor(bool* nehalem, bool* sandy_bridge)
 {
     struct family_info proc_info;
 
-#ifdef x64_BIT
     char vendor_string[13];
     get_vendor (vendor_string);
     if (strcmp (vendor_string, "GenuineIntel") == 0)
@@ -359,14 +352,6 @@ void Print_Information_Processor(bool* nehalem, bool* sandy_bridge)
         ("this was designed to be a intel proc utility. You can perhaps mod it for your machine?\n");
         exit (1);
     }
-#endif
-
-#ifndef x64_BIT
-    //anecdotal evidence: get_vendor doesnt seem to work on 32-bit
-    printf
-    ("I dont know the CPUID code to check on 32-bit OS, so i will assume that you have an Intel processor\n");
-    printf ("Don't worry if i don't find a nehalem next, i'll quit anyways\n");
-#endif
 
     get_familyinformation (&proc_info);
     print_family_info (&proc_info);
