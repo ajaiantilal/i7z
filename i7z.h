@@ -23,7 +23,7 @@
 #define false 0
 #define true 1
 
-#define MAX_PROCESSORS  32
+#define MAX_PROCESSORS  128
 #define MAX_HI_PROCESSORS    MAX_PROCESSORS
 #define MAX_SK_PROCESSORS    (MAX_PROCESSORS/4)
 
