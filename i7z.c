@@ -219,18 +219,18 @@ int main (int argc, char **argv)
     static bool logging_val_append=false, logging_val_replace=false;
     bool presupplied_socket_info = false;
     
-    static struct option long_options[4]=
+    static struct option long_options[]=
     {
-        {"wl", no_argument, &logging_val_replace, 'a'},
-        {"wa", no_argument, &logging_val_append,'b'},
+        {"write", required_argument, 0, 'w'},
         {"socket0", required_argument,0 ,'z'},
         {"socket1", required_argument,0 ,'y'}
     };
     
+    prog_options.logging = 0;
     while(1)
     {
         int option_index = 0;
-        c = getopt_long(argc, argv,":zy", long_options, &option_index);
+        c = getopt_long(argc, argv,"w:z:y:", long_options, &option_index);
         if (c==-1)
             break;
         switch(c)
@@ -246,9 +246,21 @@ int main (int argc, char **argv)
                 printf("Socket_1 information will be about socket %d\n", socket_1.socket_num);
                 break;
             case 'w':
-                printf("note that input options have changed\n");
+                //printf("write options specified %s\n", optarg);
+                if (strcmp("l",optarg)==0)
+                {
+                    prog_options.logging = 1;
+                    printf("Logging is ON and set to replace\n");
+                }
+                if (strcmp("a",optarg)==0)
+                {
+                    prog_options.logging = 2;
+                    printf("Logging is ON and set to append\n");
+                }
+                break;
         }
     }
+    /*
     prog_options.logging = 0;
     if (logging_val_replace){
         prog_options.logging = 1;
@@ -258,7 +270,7 @@ int main (int argc, char **argv)
         prog_options.logging = 2;
         printf("Logging is ON and set to append\n");
     }
-        
+    */
     /*
     while( (c=getopt(argc,argv,"w:")) !=-1){
 		cvalue = optarg;
@@ -291,7 +303,7 @@ int main (int argc, char **argv)
     print_socket_information(&socket_0);
     print_socket_information(&socket_1);
 
-    if (presupplied_socket_info){
+    if (!presupplied_socket_info){
         if (socket_0.max_cpu>0 && socket_1.max_cpu>0) {
             //Path for Dual Socket Code
             printf("i7z DEBUG: Dual Socket Detected\n");
