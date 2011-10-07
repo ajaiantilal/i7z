@@ -27,6 +27,8 @@
 #define U_L_L_I unsigned long long int
 #define numCPUs_max MAX_PROCESSORS
 
+extern int socket_0_num, socket_1_num;
+extern bool E7_mp_present;
 extern int numPhysicalCores, numLogicalCores;
 extern double TRUE_CPU_FREQ;
 int Read_Thermal_Status_CPU(int cpu_num);
@@ -134,28 +136,34 @@ void print_i7z_socket(struct cpu_socket_info socket_0, int printw_offset, int PL
         //bits from 0-63 in this store the various maximum turbo limits
         int MSR_TURBO_RATIO_LIMIT = 429;
         // 3B defines till Max 4 Core and the rest bit values from 32:63 were reserved.
-        //Bits:0-7  - core1
-        int MAX_TURBO_1C = get_msr_value (CPU_NUM, MSR_TURBO_RATIO_LIMIT, 7, 0, &error_indx);
-        SET_IF_TRUE(error_indx,online_cpus[0],-1);
-        //Bits:15-8 - core2
-        int MAX_TURBO_2C = get_msr_value (CPU_NUM, MSR_TURBO_RATIO_LIMIT, 15, 8, &error_indx);
-        SET_IF_TRUE(error_indx,online_cpus[0],-1);
-        //Bits:23-16 - core3
-        int MAX_TURBO_3C = get_msr_value (CPU_NUM, MSR_TURBO_RATIO_LIMIT, 23, 16, &error_indx);
-        SET_IF_TRUE(error_indx,online_cpus[0],-1);
-        //Bits:31-24 - core4
-        int MAX_TURBO_4C = get_msr_value (CPU_NUM, MSR_TURBO_RATIO_LIMIT, 31, 24, &error_indx);
-        SET_IF_TRUE(error_indx,online_cpus[0],-1);
+        int MAX_TURBO_1C=0, MAX_TURBO_2C=0, MAX_TURBO_3C=0, 
+            MAX_TURBO_4C=0, MAX_TURBO_5C=0, MAX_TURBO_6C=0;
+        
+        if (E7_mp_present){
+            // e7-mps dont have the 429 register!
+        } else {
+            //Bits:0-7  - core1
+            MAX_TURBO_1C = get_msr_value (CPU_NUM, MSR_TURBO_RATIO_LIMIT, 7, 0, &error_indx);
+            SET_IF_TRUE(error_indx,online_cpus[0],-1);
+            //Bits:15-8 - core2
+            MAX_TURBO_2C = get_msr_value (CPU_NUM, MSR_TURBO_RATIO_LIMIT, 15, 8, &error_indx);
+            SET_IF_TRUE(error_indx,online_cpus[0],-1);
+            //Bits:23-16 - core3
+            MAX_TURBO_3C = get_msr_value (CPU_NUM, MSR_TURBO_RATIO_LIMIT, 23, 16, &error_indx);
+            SET_IF_TRUE(error_indx,online_cpus[0],-1);
+            //Bits:31-24 - core4
+            MAX_TURBO_4C = get_msr_value (CPU_NUM, MSR_TURBO_RATIO_LIMIT, 31, 24, &error_indx);
+            SET_IF_TRUE(error_indx,online_cpus[0],-1);
 
-        //gulftown/Hexacore support
-        //technically these should be the bits to get for core 5,6
-        //Bits:39-32 - core4
-        int MAX_TURBO_5C = get_msr_value (CPU_NUM, MSR_TURBO_RATIO_LIMIT, 39, 32, &error_indx);
-        SET_IF_TRUE(error_indx,online_cpus[0],-1);
-        //Bits:47-40 - core4
-        int MAX_TURBO_6C = get_msr_value (CPU_NUM, MSR_TURBO_RATIO_LIMIT, 47, 40, &error_indx);
-        SET_IF_TRUE(error_indx,online_cpus[0],-1);
-
+            //gulftown/Hexacore support
+            //technically these should be the bits to get for core 5,6
+            //Bits:39-32 - core4
+            MAX_TURBO_5C = get_msr_value (CPU_NUM, MSR_TURBO_RATIO_LIMIT, 39, 32, &error_indx);
+            SET_IF_TRUE(error_indx,online_cpus[0],-1);
+            //Bits:47-40 - core4
+            MAX_TURBO_6C = get_msr_value (CPU_NUM, MSR_TURBO_RATIO_LIMIT, 47, 40, &error_indx);
+            SET_IF_TRUE(error_indx,online_cpus[0],-1);
+        }
         //fflush (stdout);
         //sleep (1);
 
@@ -540,7 +548,7 @@ void print_i7z ()
     construct_CPU_Heirarchy_info(&chi);
     construct_sibling_list(&chi);
       //print_CPU_Heirarchy(chi);
-    construct_socket_information(&chi, &socket_0, &socket_1);
+    construct_socket_information(&chi, &socket_0, &socket_1, socket_0_num, socket_1_num);
 	  //print_socket_information(&socket_0);
 	  //print_socket_information(&socket_1);
 
@@ -613,7 +621,7 @@ void print_i7z ()
     {
         construct_CPU_Heirarchy_info(&chi);
         construct_sibling_list(&chi);
-        construct_socket_information(&chi, &socket_0, &socket_1);
+        construct_socket_information(&chi, &socket_0, &socket_1, socket_0_num, socket_1_num);
 
         //HT enabled if num logical > num physical cores
         if (chi.HT==1)

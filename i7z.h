@@ -142,7 +142,9 @@ void Test_Or_Make_MSR_DEVICE_FILES();
 int check_and_return_processor(char*strinfo);
 int check_and_return_physical_id(char*strinfo);
 void construct_sibling_list(struct cpu_heirarchy_info* chi);
-void construct_socket_information(struct cpu_heirarchy_info* chi,struct cpu_socket_info* socket_0,struct cpu_socket_info* socket_1);
+void construct_socket_information(struct cpu_heirarchy_info* chi,
+        struct cpu_socket_info* socket_0,struct cpu_socket_info* socket_1,
+        int, int);
 void print_socket_information(struct cpu_socket_info* socket);
 void construct_CPU_Heirarchy_info(struct cpu_heirarchy_info* chi);
 void print_CPU_Heirarchy(struct cpu_heirarchy_info chi);

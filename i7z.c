@@ -19,7 +19,7 @@
 #include <sys/time.h>
 #include <time.h>
 #include <ncurses.h>
-
+#include "getopt.h"
 #include "i7z.h"
 //#include "CPUHeirarchy.h"
 
@@ -27,6 +27,8 @@ struct program_options prog_options;
 
 int Single_Socket();
 int Dual_Socket();
+
+int socket_0_num=0, socket_1_num=1;
 
 
 /////////////////////LOGGING TO FILE////////////////////////////////////////
@@ -198,9 +200,66 @@ int main (int argc, char **argv)
 {
     prog_options.logging=0; //0=no logging, 1=logging, 2=appending
 
+    Print_Version_Information();
+
+    Print_Information_Processor (&prog_options.i7_version.nehalem, &prog_options.i7_version.sandy_bridge);
+
+//	printf("nehalem %d, sandy brdige %d\n", prog_options.i7_version.nehalem, prog_options.i7_version.sandy_bridge);
+
+    Test_Or_Make_MSR_DEVICE_FILES ();
+
+
+    struct cpu_heirarchy_info chi;
+    struct cpu_socket_info socket_0={.max_cpu=0, .socket_num=0, .processor_num={-1,-1,-1,-1,-1,-1,-1,-1}};
+    struct cpu_socket_info socket_1={.max_cpu=0, .socket_num=1, .processor_num={-1,-1,-1,-1,-1,-1,-1,-1}};
+
     //////////////////// GET ARGUMENTS //////////////////////
     int c;
     char *cvalue = NULL;
+    static bool logging_val_append=false, logging_val_replace=false;
+    bool presupplied_socket_info = false;
+    
+    static struct option long_options[4]=
+    {
+        {"wl", no_argument, &logging_val_replace, 'a'},
+        {"wa", no_argument, &logging_val_append,'b'},
+        {"socket0", required_argument,0 ,'z'},
+        {"socket1", required_argument,0 ,'y'}
+    };
+    
+    while(1)
+    {
+        int option_index = 0;
+        c = getopt_long(argc, argv,":zy", long_options, &option_index);
+        if (c==-1)
+            break;
+        switch(c)
+        {
+            case 'z':
+                socket_0_num = atoi(optarg);
+                presupplied_socket_info = true;
+                printf("Socket_0 information will be about socket %d\n", socket_0.socket_num);
+                break;
+            case 'y':
+                socket_1_num = atoi(optarg);
+                presupplied_socket_info = true;
+                printf("Socket_1 information will be about socket %d\n", socket_1.socket_num);
+                break;
+            case 'w':
+                printf("note that input options have changed\n");
+        }
+    }
+    prog_options.logging = 0;
+    if (logging_val_replace){
+        prog_options.logging = 1;
+        printf("Logging is ON and set to replace\n");
+    }
+    if (logging_val_append){
+        prog_options.logging = 2;
+        printf("Logging is ON and set to append\n");
+    }
+        
+    /*
     while( (c=getopt(argc,argv,"w:")) !=-1){
 		cvalue = optarg;
     	//printf("argument %c\n",c);
@@ -218,45 +277,34 @@ int main (int argc, char **argv)
      	    }else{
      		printf("Unknown Option, ignoring -w option.\n");
      		prog_options.logging=0;
-
      	    }
      	    sleep(3);
         }
     }
+    */
     ///////////////////////////////////////////////////////////
     
-    
-    Print_Version_Information();
-
-    Print_Information_Processor (&prog_options.i7_version.nehalem, &prog_options.i7_version.sandy_bridge);
-
-//	printf("nehalem %d, sandy brdige %d\n", prog_options.i7_version.nehalem, prog_options.i7_version.sandy_bridge);
-
-    Test_Or_Make_MSR_DEVICE_FILES ();
-
-
-    struct cpu_heirarchy_info chi;
-    struct cpu_socket_info socket_0={.max_cpu=0, .socket_num=0, .processor_num={-1,-1,-1,-1,-1,-1,-1,-1}};
-    struct cpu_socket_info socket_1={.max_cpu=0, .socket_num=1, .processor_num={-1,-1,-1,-1,-1,-1,-1,-1}};
-
-
     construct_CPU_Heirarchy_info(&chi);
     construct_sibling_list(&chi);
     print_CPU_Heirarchy(chi);
-    construct_socket_information(&chi, &socket_0, &socket_1);
+    construct_socket_information(&chi, &socket_0, &socket_1, socket_0_num, socket_1_num);
     print_socket_information(&socket_0);
     print_socket_information(&socket_1);
 
-    if (socket_0.max_cpu>0 && socket_1.max_cpu>0) {
-        //Path for Dual Socket Code
-        printf("i7z DEBUG: Dual Socket Detected\n");
-        //Dual_Socket(&prog_options);
-        Dual_Socket();
+    if (presupplied_socket_info){
+        if (socket_0.max_cpu>0 && socket_1.max_cpu>0) {
+            //Path for Dual Socket Code
+            printf("i7z DEBUG: Dual Socket Detected\n");
+            //Dual_Socket(&prog_options);
+            Dual_Socket();
+        } else {
+            //Path for Single Socket Code
+            printf("i7z DEBUG: Single Socket Detected\n");
+            //Single_Socket(&prog_options);
+            Single_Socket();
+        }
     } else {
-        //Path for Single Socket Code
-        printf("i7z DEBUG: Single Socket Detected\n");
-        //Single_Socket(&prog_options);
-        Single_Socket();
+        Dual_Socket();
     }
     return(1);
 }

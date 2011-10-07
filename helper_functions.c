@@ -37,6 +37,7 @@
 //#define ULLONG_MAX 18446744073709551615
 
 extern struct program_options prog_options;
+bool E7_mp_present=false;
 
 /////////////////////////////////////////READ TEMPERATURE////////////////////////////////////////////
 #define IA32_THERM_STATUS 0x19C
@@ -410,6 +411,7 @@ void Print_Information_Processor(bool* nehalem, bool* sandy_bridge)
                 printf ("i7z DEBUG: Detected a Xeon MP - 32nm (E7 series)\n");
 	        *nehalem = true;
   	        *sandy_bridge = false;
+  	        E7_mp_present = true;
                 break;
             case 0xC:
 	        *nehalem = true;
@@ -574,7 +576,9 @@ void construct_sibling_list(struct cpu_heirarchy_info* chi)
     }
 }
 
-void construct_socket_information(struct cpu_heirarchy_info* chi,struct cpu_socket_info* socket_0,struct cpu_socket_info* socket_1)
+void construct_socket_information(struct cpu_heirarchy_info* chi,
+    struct cpu_socket_info* socket_0,struct cpu_socket_info* socket_1,
+    int socket_0_num, int socket_1_num)
 {
     int i;
 
@@ -589,14 +593,14 @@ void construct_socket_information(struct cpu_heirarchy_info* chi,struct cpu_sock
     for (i=0;i< chi->max_online_cpu ;i++) {
         assert(i < MAX_HI_PROCESSORS);
         if (chi->display_cores[i]!=-1) {
-            if (chi->package_num[i]==0) {
+            if (chi->package_num[i]==socket_0_num) {
                 assert(socket_0->max_cpu < MAX_SK_PROCESSORS);
                 socket_0->processor_num[socket_0->max_cpu]=chi->processor_num[i];
                 socket_0->max_cpu++;
                 socket_0->num_physical_cores++;
                 socket_0->num_logical_cores++;
             }
-            if (chi->package_num[i]==1) {
+            if (chi->package_num[i]==socket_1_num) {
                 assert(socket_1->max_cpu < MAX_SK_PROCESSORS);
                 socket_1->processor_num[socket_1->max_cpu]=chi->processor_num[i];
                 socket_1->max_cpu++;
@@ -604,10 +608,10 @@ void construct_socket_information(struct cpu_heirarchy_info* chi,struct cpu_sock
                 socket_1->num_logical_cores++;
             }
         } else {
-            if (chi->package_num[i]==0) {
+            if (chi->package_num[i]==socket_0_num) {
                 socket_0->num_logical_cores++;
             }
-            if (chi->package_num[i]==1) {
+            if (chi->package_num[i]==socket_1_num) {
                 socket_1->num_logical_cores++;
             }
         }
