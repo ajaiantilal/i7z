@@ -199,6 +199,11 @@ void atexit_runsttysane()
     system("stty sane");
 }
 
+void modprobing_msr()
+{
+    system("modprobe msr");
+}
+
 //Info: I start from index 1 when i talk about cores on CPU
 
 int main (int argc, char **argv)
@@ -213,7 +218,7 @@ int main (int argc, char **argv)
 //	printf("nehalem %d, sandy brdige %d\n", prog_options.i7_version.nehalem, prog_options.i7_version.sandy_bridge);
 
     Test_Or_Make_MSR_DEVICE_FILES ();
-
+    modprobing_msr();
 
     struct cpu_heirarchy_info chi;
     struct cpu_socket_info socket_0={.max_cpu=0, .socket_num=0, .processor_num={-1,-1,-1,-1,-1,-1,-1,-1}};
