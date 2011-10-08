@@ -193,11 +193,17 @@ void logCpuFreq_dual_d(int value,int socket_num)
 	}
 }
 
+void atexit_runsttysane()
+{
+    printf("Quitting i7z\n");
+    system("stty sane");
+}
 
 //Info: I start from index 1 when i talk about cores on CPU
 
 int main (int argc, char **argv)
 {
+    atexit(atexit_runsttysane);
     prog_options.logging=0; //0=no logging, 1=logging, 2=appending
 
     Print_Version_Information();
