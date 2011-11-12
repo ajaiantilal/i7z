@@ -1,5 +1,5 @@
 license: My code is GPLv2
-Current Version: svn-31 (17/May/2010)
+Current Version: svn-71 (Nov/2011)
 
 Compiling:
 32/64-bit linux:
@@ -17,7 +17,8 @@ have it. Else run the MAKEDEV file. I do modprobing of msr within the C-program.
 
 I added in new code that shows a nice GUI.
 The Makefile for that is in GUI/ subdirectory. Just install a couple of qt packages
-and you should be all set to run it. There is a README file that lists those packages
+and you should be all set to run it. There is a README file that lists those packages.
+Run the following commands in GUI directory: qmake; make clean; make
 
 Running GUI:
     sudo ./i7z_GUI
