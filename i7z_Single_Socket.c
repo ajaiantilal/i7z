@@ -37,6 +37,10 @@ extern FILE *fp_log_file;
 
 struct timespec global_ts;
 
+extern char* CPU_FREQUENCY_LOGGING_FILE_single;
+extern char* CPU_FREQUENCY_LOGGING_FILE_dual;
+extern use_ncurses;
+
 void print_i7z_socket_single(struct cpu_socket_info socket_0, int printw_offset, int PLATFORM_INFO_MSR,  int PLATFORM_INFO_MSR_high,  int PLATFORM_INFO_MSR_low,
                              int* online_cpus, double cpu_freq_cpuinfo,  struct timespec one_second_sleep, char TURBO_MODE,
                              char* HT_ON_str, int* kk_1, U_L_L_I * old_val_CORE, U_L_L_I * old_val_REF, U_L_L_I * old_val_C3, U_L_L_I * old_val_C6, U_L_L_I * old_val_C7,
@@ -68,13 +72,14 @@ int Single_Socket ()
 
     sleep (3);
 
-    //Setup stuff for ncurses
-    initscr ();			/* start the curses mode */
-    start_color ();
-    getmaxyx (stdscr, row, col);	/* get the number of rows and columns */
-    refresh ();
-    //Setup for ncurses completed
-
+	if (use_ncurses){
+		//Setup stuff for ncurses
+	    initscr ();			/* start the curses mode */
+		start_color ();
+	    getmaxyx (stdscr, row, col);	/* get the number of rows and columns */
+		refresh ();
+	    //Setup for ncurses completed
+	}
     print_i7z_single();
     exit (0);
     return (1);

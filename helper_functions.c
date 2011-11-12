@@ -705,3 +705,12 @@ int in_core_list(int ii,int* core_list)
     return(in);
 }
 
+bool file_exists(char* filename)
+{
+    if (access(filename, F_OK) == 0)
+    {
+        return true;
+    } else {
+        return false;
+    }
+}

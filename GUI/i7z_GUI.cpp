@@ -43,9 +43,10 @@ int core_list[MAX_PROCESSORS_GUI];
 struct cpu_heirarchy_info chi;
 struct cpu_socket_info socket_0, socket_1;
 unsigned int numCPUs;
-
+struct program_options prog_options;
 
 void Construct_Socket_Information_in_GUI(unsigned int *numCPUs) {
+    int socket_0_num=0, socket_1_num=1;
     socket_0.max_cpu=0;
     socket_0.socket_num=0;
     int i;
@@ -60,7 +61,7 @@ void Construct_Socket_Information_in_GUI(unsigned int *numCPUs) {
     construct_CPU_Heirarchy_info(&chi);
     construct_sibling_list(&chi);
 //    print_CPU_Heirarchy(chi);
-    construct_socket_information(&chi, &socket_0, &socket_1);
+    construct_socket_information(&chi, &socket_0, &socket_1, socket_0_num, socket_1_num);
 //    print_socket_information(&socket_0);
 //    print_socket_information(&socket_1);
     *numCPUs = socket_0.num_physical_cores + socket_1.num_physical_cores;
@@ -458,7 +459,9 @@ MyWidget::MyWidget (QWidget * parent):QWidget (parent)
     Print_Version_Information();
 
     //
-    Print_Information_Processor ();
+    //Print_Information_Processor ();
+    bool cpuNehalem, cpuSandybridge;
+    Print_Information_Processor (&cpuNehalem, &cpuSandybridge);
 
     Test_Or_Make_MSR_DEVICE_FILES ();
 
@@ -681,4 +684,4 @@ main (int argc, char *argv[])
 	return app.exec ();
 }
 
-#include "GUI_i7z.moc"
+#include "i7z_GUI.moc"

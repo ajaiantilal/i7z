@@ -11,9 +11,6 @@
 
 #define i7z_VERSION_INFO "svn-r61-(6-Sep-2011)"
 
-#define CPU_FREQUENCY_LOGGING_FILE_single "cpu_freq_log.txt"
-#define CPU_FREQUENCY_LOGGING_FILE_dual "cpu_freq_log_dual_%d.txt"
-
 //structure to store the information about the processor
 #define proccpuinfo "/proc/cpuinfo"
 
@@ -150,6 +147,7 @@ void construct_CPU_Heirarchy_info(struct cpu_heirarchy_info* chi);
 void print_CPU_Heirarchy(struct cpu_heirarchy_info chi);
 int in_core_list(int ii,int* core_list);
 void Print_Version_Information();
+bool file_exists(char*);
 
 #define SET_ONLINE_ARRAY_MINUS1(online_cpus) {for(i=0;i<32;i++) online_cpus[i]=-1;}
 #define SET_ONLINE_ARRAY_PLUS1(online_cpus) {for(i=0;i<32;i++) online_cpus[i]=1;}

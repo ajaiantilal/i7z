@@ -6,6 +6,7 @@ TEMPLATE = app
 TARGET = 
 DEPENDPATH += .
 INCLUDEPATH += .
-
+CONFIG += debug
+CFLAGS += -g
 # Input
-SOURCES += GUI_i7z.cpp
+SOURCES += i7z_GUI.cpp

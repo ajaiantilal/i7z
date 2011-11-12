@@ -37,6 +37,11 @@ extern struct program_options prog_options;
 extern FILE *fp_log_file;
 extern FILE *fp_log_file1, *fp_log_file2;
 
+extern char* CPU_FREQUENCY_LOGGING_FILE_single;
+extern char* CPU_FREQUENCY_LOGGING_FILE_dual;
+
+extern bool use_ncurses;
+
 void print_i7z ();
 
 int Dual_Socket ()
@@ -60,13 +65,14 @@ int Dual_Socket ()
 
     sleep (3);
 
-    //Setup stuff for ncurses
-    initscr ();			/* start the curses mode */
-    start_color ();
-    getmaxyx (stdscr, row, col);	/* get the number of rows and columns */
-    refresh ();
-    //Setup for ncurses completed
-
+	if (use_ncurses) {
+	    //Setup stuff for ncurses
+		initscr ();			/* start the curses mode */
+	    start_color ();
+	    getmaxyx (stdscr, row, col);	/* get the number of rows and columns */
+		refresh ();
+	    //Setup for ncurses completed
+	}
     print_i7z();
     exit (0);
     return (1);
