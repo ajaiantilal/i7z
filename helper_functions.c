@@ -421,7 +421,7 @@ void Print_Information_Processor(bool* nehalem, bool* sandy_bridge)
             case 0x5:
 	        *nehalem = true;
   	        *sandy_bridge = false;
-	        printf ("i7z DEBUG: Detected an i3/i5/i7 mobile processor - 32nm (westmere)\n");
+	        printf ("i7z DEBUG: Detected an i3/i5/i7 mobile processor - 32nm (westmere - 1st generation core)\n");
 	        break;
             case 0xD:
 	        *nehalem = false;
@@ -431,7 +431,7 @@ void Print_Information_Processor(bool* nehalem, bool* sandy_bridge)
             case 0xA:
 	        *nehalem = false;
 	  	*sandy_bridge = true;
-	        printf ("i7z DEBUG: Detected an i7 - 32nm\n");
+	        printf ("i7z DEBUG: Detected an i3/i5/i7 - 32nm (sandy bridge - 2nd generation core)\n");
 	        break;
             default:
                 printf ("i7z DEBUG: Unknown processor, not exactly based on Nehalem\n");
