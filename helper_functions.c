@@ -377,6 +377,7 @@ void Print_Information_Processor(bool* nehalem, bool* sandy_bridge)
     //0x2, 0x5 - i3, i5, i7 mobile processors, 32nm
     //0x2, 0xA - i7, 32nm
 
+    //http://ark.intel.com/SSPECQDF.aspx
 
     printf("i7z DEBUG: msr = Model Specific Register\n");
     if (proc_info.family >= 0x6)
@@ -421,12 +422,12 @@ void Print_Information_Processor(bool* nehalem, bool* sandy_bridge)
             case 0x5:
 	        *nehalem = true;
   	        *sandy_bridge = false;
-	        printf ("i7z DEBUG: Detected an i3/i5/i7 mobile processor - 32nm (westmere - 1st generation core)\n");
+	        printf ("i7z DEBUG: Detected an i3/i5/i7 - 32nm (westmere - 1st generation core)\n");
 	        break;
             case 0xD:
 	        *nehalem = false;
 	  	*sandy_bridge = true;
-	        printf ("i7z DEBUG: Detected an i7 - 32nm\n");
+	        printf ("i7z DEBUG: Detected an i7 - 32nm (haven't seen this version around, do write to me with the model number)\n");
 	        break;
             case 0xA:
 	        *nehalem = false;
