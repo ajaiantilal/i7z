@@ -44,7 +44,7 @@ message:
 	@echo "If the compilation complains about not finding ncurses.h, install ncurses (libncurses5-dev on ubuntu/debian)"
 
 bin:
-	$(CC) $(CFLAGS) $(LDFLAGS) $(INCLUDEFLAGS) $(SRC) -o $(BIN)
+	$(CC) $(CFLAGS) $(INCLUDEFLAGS) $(SRC) $(LDFLAGS) -o $(BIN)
 
 clean:
 	rm -f *.o $(BIN)
