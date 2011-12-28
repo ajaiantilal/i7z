@@ -38,13 +38,15 @@ SRC	= i7z.c helper_functions.c i7z_Single_Socket.c i7z_Dual_Socket.c
 
 sbindir = /usr/sbin
 
-all: clean message bin
+all: clean message bin test_exist
 
 message:
 	@echo "If the compilation complains about not finding ncurses.h, install ncurses (libncurses5-dev on ubuntu/debian)"
 
-bin: clean
+bin: 
 	$(CC) $(CFLAGS) $(INCLUDEFLAGS) $(SRC) $(LDFLAGS) -o $(BIN)
+
+test_exist:
 	@test -f i7z && echo 'Succeeded, now run sudo ./i7z' || echo 'Compilation failed'
 
 clean:
