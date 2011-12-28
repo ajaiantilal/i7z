@@ -17,7 +17,7 @@
 
 #makefile updated from patch by anestling
 
-CFLAGSANY = -g -O0 -fomit-frame-pointer -D_GNU_SOURCE -D_FILE_OFFSET_BITS=64 -DBUILD_MAIN -Wall
+CFLAGSANY = -g -O0 -fomit-frame-pointer -D_GNU_SOURCE -D_FILE_OFFSET_BITS=64 -DBUILD_MAIN 
 
 LBITS := $(shell getconf LONG_BIT)
 ifeq ($(LBITS),64)
@@ -43,8 +43,9 @@ all: clean message bin
 message:
 	@echo "If the compilation complains about not finding ncurses.h, install ncurses (libncurses5-dev on ubuntu/debian)"
 
-bin:
+bin: clean
 	$(CC) $(CFLAGS) $(INCLUDEFLAGS) $(SRC) $(LDFLAGS) -o $(BIN)
+	@test -f i7z && echo 'Succeeded, now run sudo ./i7z' || echo 'Compilation failed'
 
 clean:
 	rm -f *.o $(BIN)

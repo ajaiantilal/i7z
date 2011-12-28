@@ -44,6 +44,7 @@ void logCpuFreq_single(float value);
 void logOpenFile_dual(int);
 void logCloseFile_dual(int);
 void logCpuFreq_dual(float,int);
+void logCpuFreq_dual_d(int, int);
 
 
 struct cpu_heirarchy_info {
@@ -157,9 +158,9 @@ bool file_exists(char*);
 #define RETURN_IF_TRUE(cond) if(cond) return;
 
 //due to the fact that sometimes 100.0>100,  the below macro checks till 101
-#define THRESHOLD_BETWEEN_0_100(cond) (cond>=-1 && cond <=105 && !isinf(cond) && !isnan(cond))? cond: __builtin_inf()
+#define THRESHOLD_BETWEEN_0_100(cond) (cond>=-1 && cond <=125 && !isinf(cond) && !isnan(cond))? cond: __builtin_inf()
 
 //due to the fact that sometimes 100.0>100,  the below macro checks till 101
-#define IS_THIS_BETWEEN_0_100(cond) (cond>=-1 && cond <=105 && !isinf(cond) && !isnan(cond))? 1: 0
+#define IS_THIS_BETWEEN_0_100(cond) (cond>=-1 && cond <=125 && !isinf(cond) && !isnan(cond))? 0: 1
 
 #define THRESHOLD_BETWEEN_0_6000(cond) (cond>=0 && cond <=10000)? cond: __builtin_inf()

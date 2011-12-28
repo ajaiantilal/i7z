@@ -2,6 +2,7 @@
 # *
 # *   Under GPL v3
 # *   written by Abhishek Jaiantilal
+# *   much thanks to Antonio Meireles who suggested this idea & helped with testing 
 # *   run as      sudo ruby i7z_rw_registers.rb
 # *
 # * ----------------------------------------------------------------------- */

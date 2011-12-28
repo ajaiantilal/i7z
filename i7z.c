@@ -223,8 +223,8 @@ int main (int argc, char **argv)
 
     //////////////////// GET ARGUMENTS //////////////////////
     int c;
-    char *cvalue = NULL;
-    static bool logging_val_append=false, logging_val_replace=false;
+    //char *cvalue = NULL;
+    //static bool logging_val_append=false, logging_val_replace=false;
     bool presupplied_socket_info = false;
     
     static struct option long_options[]=
@@ -307,7 +307,7 @@ int main (int argc, char **argv)
 				printf("%c[%dm",0x1B,0);
 				printf("To turn the ncurses GUI off use: %c[%d;%d;%dm./i7z --nogui\n", 0x1B, 1, 31, 40);
 				printf("%c[%dm",0x1B,0);
-				printf("Example: To print for two sockets and also change the log file %c[%d;%d;%dm./i7z --socket0 0 --socket1 1 -logfile /tmp/logfilei7z -w l\n", 0x1B,31, 40);
+				printf("Example: To print for two sockets and also change the log file %c[%d;%d;%dm./i7z --socket0 0 --socket1 1 -logfile /tmp/logfilei7z -w l\n", 0x1B, 1, 31, 40);
 				printf("%c[%dm",0x1B,0);
 
 				exit(1);

@@ -57,7 +57,8 @@ int Dual_Socket ()
 		fclose(fp_log_file);
     }
         
-	int row, col;			/* to store the number of rows and    *
+	//int row, col;			
+	                                /* to store the number of rows and    *
 					 * the number of colums of the screen *
 					 * for NCURSES                        */
 
@@ -69,7 +70,7 @@ int Dual_Socket ()
 	    //Setup stuff for ncurses
 		initscr ();			/* start the curses mode */
 	    start_color ();
-	    getmaxyx (stdscr, row, col);	/* get the number of rows and columns */
+	    //getmaxyx (stdscr, row, col);	/* get the number of rows and columns */
 		refresh ();
 	    //Setup for ncurses completed
 	}

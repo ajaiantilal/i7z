@@ -39,7 +39,7 @@ struct timespec global_ts;
 
 extern char* CPU_FREQUENCY_LOGGING_FILE_single;
 extern char* CPU_FREQUENCY_LOGGING_FILE_dual;
-extern use_ncurses;
+extern bool use_ncurses;
 
 void print_i7z_socket_single(struct cpu_socket_info socket_0, int printw_offset, int PLATFORM_INFO_MSR,  int PLATFORM_INFO_MSR_high,  int PLATFORM_INFO_MSR_low,
                              int* online_cpus, double cpu_freq_cpuinfo,  struct timespec one_second_sleep, char TURBO_MODE,
@@ -55,12 +55,9 @@ int Single_Socket ()
     //zero up the file before doing anything
     if(prog_options.logging!=0){
         fp_log_file = fopen(CPU_FREQUENCY_LOGGING_FILE_single,"w");
-		fclose(fp_log_file);
+        fclose(fp_log_file);
     }
     
-    int row, col;			/* to store the number of rows and    *
-					 * the number of colums of the screen *
-					 * for NCURSES                        */
 
     printf ("i7z DEBUG: In i7z Single_Socket()\n");
      
@@ -72,14 +69,18 @@ int Single_Socket ()
 
     sleep (3);
 
-	if (use_ncurses){
-		//Setup stuff for ncurses
-	    initscr ();			/* start the curses mode */
-		start_color ();
-	    getmaxyx (stdscr, row, col);	/* get the number of rows and columns */
-		refresh ();
-	    //Setup for ncurses completed
-	}
+    if (use_ncurses){
+        //int row, col;             
+                                   /* to store the number of rows and    *
+                                    * the number of colums of the screen *
+                                    * for NCURSES                        */
+        //Setup stuff for ncurses
+        initscr ();			/* start the curses mode */
+        start_color ();
+        //getmaxyx (stdscr, row, col);	/* get the number of rows and columns */
+        refresh ();
+        //Setup for ncurses completed
+    }
     print_i7z_single();
     exit (0);
     return (1);
@@ -194,12 +195,14 @@ void print_i7z_socket_single(struct cpu_socket_info socket_0, int printw_offset,
         char string_ptr1[200], string_ptr2[200];
 
         int IA32_PERF_GLOBAL_CTRL = 911;	//38F
-        int IA32_PERF_GLOBAL_CTRL_Value =	get_msr_value (CPU_NUM, IA32_PERF_GLOBAL_CTRL, 63, 0, &error_indx);
+        int IA32_PERF_GLOBAL_CTRL_Value;
+        IA32_PERF_GLOBAL_CTRL_Value =	get_msr_value (CPU_NUM, IA32_PERF_GLOBAL_CTRL, 63, 0, &error_indx);
         SET_IF_TRUE(error_indx,online_cpus[0],-1);
         RETURN_IF_TRUE(online_cpus[0]==-1);
 
         int IA32_FIXED_CTR_CTL = 909;	//38D
-        int IA32_FIXED_CTR_CTL_Value = get_msr_value (CPU_NUM, IA32_FIXED_CTR_CTL, 63, 0, &error_indx);
+        int IA32_FIXED_CTR_CTL_Value;
+        IA32_FIXED_CTR_CTL_Value = get_msr_value (CPU_NUM, IA32_FIXED_CTR_CTL, 63, 0, &error_indx);
         SET_IF_TRUE(error_indx,online_cpus[0],-1);
         RETURN_IF_TRUE(online_cpus[0]==-1);
 
@@ -567,7 +570,7 @@ void print_i7z_socket_single(struct cpu_socket_info socket_0, int printw_offset,
         
         logOpenFile_single();
         
-        time_t time_to_save;
+        //time_t time_to_save;
         //logCpuFreq_single_d(time(&time_to_save));
         clock_gettime(CLOCK_REALTIME, &global_ts);
         logCpuFreq_single( (float)global_ts.tv_sec + (float)global_ts.tv_nsec*10e-9);
