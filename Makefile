@@ -17,7 +17,9 @@
 
 #makefile updated from patch by anestling
 
-CFLAGSANY = -g -O0 -fomit-frame-pointer -D_GNU_SOURCE -D_FILE_OFFSET_BITS=64 -DBUILD_MAIN 
+#explicitly disable two scheduling flags as they cause segfaults
+CFLAGS_FOR_AVOIDING_SEG_FAULT = -fno-schedule-insns2  -fno-schedule-insns
+CFLAGSANY = $(CFLAGS_FOR_AVOIDING_SEG_FAULT) -O0 -g  -D_GNU_SOURCE -D_FILE_OFFSET_BITS=64 -DBUILD_MAIN
 
 LBITS := $(shell getconf LONG_BIT)
 ifeq ($(LBITS),64)

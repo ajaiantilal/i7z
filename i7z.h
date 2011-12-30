@@ -150,8 +150,8 @@ int in_core_list(int ii,int* core_list);
 void Print_Version_Information();
 bool file_exists(char*);
 
-#define SET_ONLINE_ARRAY_MINUS1(online_cpus) {for(i=0;i<32;i++) online_cpus[i]=-1;}
-#define SET_ONLINE_ARRAY_PLUS1(online_cpus) {for(i=0;i<32;i++) online_cpus[i]=1;}
+#define SET_ONLINE_ARRAY_MINUS1(online_cpus) {int iii;for(iii=0;iii<MAX_PROCESSORS;iii++) online_cpus[iii]=-1;}
+#define SET_ONLINE_ARRAY_PLUS1(online_cpus) {int iii;for(iii=0;iii<MAX_PROCESSORS;iii++) online_cpus[iii]=1;}
 
 #define SET_IF_TRUE(error_indx,a,b) if(error_indx) a=b;
 #define CONTINUE_IF_TRUE(cond) if(cond) continue;
