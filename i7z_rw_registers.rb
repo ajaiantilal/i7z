@@ -183,10 +183,15 @@ def disable_turbo_status()
 end
 
 def get_multiplier()
-	status = `rdmsr  0x198 --decimal`
-	print_command('rdmsr  0x198 --decimal')
-	status = status.to_i & 0xFFFF
-	
+	if nehalem_or_sandybridge == 'Nehalem'
+	    status = `rdmsr  0x198 --decimal`
+	    print_command('rdmsr  0x198 --decimal')
+	    status = status.to_i & 0xFFFF
+	else
+	    status = `rdmsr  0x198 --decimal --bitfield 15:8`
+	    print_command('rdmsr  0x198 --decimal --bitfield 15:8')
+	    status = status.to_i & 0xFF
+	end
 	print "  Current Multiplier is #{status}\n"
 	
 	status1 = `rdmsr  0xce --decimal --bitfield 47:40`
@@ -247,35 +252,47 @@ def set_multiplier(mult)
 end
 
 def get_power
-	status1 = `rdmsr  0x1ac --bitfield 14:0 --decimal`
-	print_command('rdmsr  0x1ac --bitfield 14:0 --decimal')
+	if nehalem_or_sandybridge != 'Nehalem'
+	    print "POWER functions DON'T WORK ON SANDY BRIDGE (intel seems to have removed functionality)\n"
+	else
+	    status1 = `rdmsr  0x1ac --bitfield 14:0 --decimal`
+	    print_command('rdmsr  0x1ac --bitfield 14:0 --decimal')
 	
-	status2 = `rdmsr  0x1ac --bitfield 30:16 --decimal`
-	print_command('rdmsr  0x1ac --bitfield 30:16 --decimal')
+	    status2 = `rdmsr  0x1ac --bitfield 30:16 --decimal`
+	    print_command('rdmsr  0x1ac --bitfield 30:16 --decimal')
 	
-	print "Current TDP limit is #{status1.to_i * 1/8} watts, TDC limit is #{status2.to_i * 1/8} amps\n"
+	    print "Current TDP limit is #{status1.to_i * 1/8} watts, TDC limit is #{status2.to_i * 1/8} amps\n"
+	end
 end	
 
 def set_tdp(limit)
-	status1 = `rdmsr  0x1ac --decimal`
-	print_command('rdmsr  0x1ac --decimal')
+	if nehalem_or_sandybridge != 'Nehalem'
+	    print "POWER functions DON'T WORK ON SANDY BRIDGE (intel seems to have removed functionality)\n"
+	else
+	    status1 = `rdmsr  0x1ac --decimal`
+	    print_command('rdmsr  0x1ac --decimal')
 	
-	tdp = (status1.to_i & 0xFFFFFFFFFFFF8000) | (0x8000) | (limit.to_i/0.125)  #set bits 14:0, as resolution is 1/8 of a watt/amp 
+	    tdp = (status1.to_i & 0xFFFFFFFFFFFF8000) | (0x8000) | (limit.to_i/0.125)  #set bits 14:0, as resolution is 1/8 of a watt/amp 
 	
-	status = "wrmsr  0x1ac #{tdp}"
-	print_command(status)
-	system(status)	
+	    status = "wrmsr  0x1ac #{tdp}"
+	    print_command(status)
+	    system(status)	
+	end
 end
 
 def set_tdc(limit)
-	status1 = `rdmsr  0x1ac --decimal`
-	print_command('rdmsr  0x1ac --decimal')
+	if nehalem_or_sandybridge != 'Nehalem'
+	    print "POWER functions DON'T WORK ON SANDY BRIDGE (intel seems to have removed functionality)\n"
+	else
+	    status1 = `rdmsr  0x1ac --decimal`
+	    print_command('rdmsr  0x1ac --decimal')
 	
-	tdc = (status1.to_i & 0xFFFFFFFF8000FFFF) | (0x80000000) | ((limit.to_i/0.125).to_i << 16)  #set bits 30:16, as resolution is 1/8 of a watt/amp 
+	    tdc = (status1.to_i & 0xFFFFFFFF8000FFFF) | (0x80000000) | ((limit.to_i/0.125).to_i << 16)  #set bits 30:16, as resolution is 1/8 of a watt/amp 
 	
-	status = "wrmsr  0x1ac #{tdc}"
-	print_command(status)
-	system(status)	
+	    status = "wrmsr  0x1ac #{tdc}"
+	    print_command(status)
+	    system(status)	
+	end
 end
 
 
