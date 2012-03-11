@@ -88,6 +88,17 @@ void logCpuFreq_single_d(int value)
 	fprintf(fp_log_file,"%d\t",value);
 }
 
+void logCpuFreq_single_ts(struct timespec  *value) //HW use timespec to avoid floating point overflow
+{
+    //below when just logging
+    if(prog_options.logging==1)
+        fprintf(fp_log_file,"%d.%d\n",value->tv_sec,value->tv_nsec); //newline, replace \n with \t to get everything separated with tabs
+
+    //below when appending
+    if(prog_options.logging==2)
+        fprintf(fp_log_file,"%d.%d\t",value->tv_sec,value->tv_nsec);
+}
+
 
 // For dual socket make filename based on the socket number
 void logOpenFile_dual(int socket_num)
@@ -193,6 +204,28 @@ void logCpuFreq_dual_d(int value,int socket_num)
 		if(prog_options.logging==2)
 		fprintf(fp_log_file2,"%d\t",value);
 	}
+}
+
+void logCpuFreq_dual_ts(struct timespec  *value, int socket_num) //HW use timespec to avoid floating point overflow
+{
+    if(socket_num==0){
+        //below when just logging
+        if(prog_options.logging==1)
+            fprintf(fp_log_file1,"%d.%d\n",value->tv_sec,value->tv_nsec); //newline, replace \n with \t to get everything separated with tabs
+
+        //below when appending
+        if(prog_options.logging==2)
+             fprintf(fp_log_file1,"%d.%d\t",value->tv_sec,value->tv_nsec);
+    }
+    if(socket_num==1){
+        //below when just logging
+        if(prog_options.logging==1)
+            fprintf(fp_log_file2,"%d.%d\n",value->tv_sec,value->tv_nsec); //newline, replace \n with \t to get everything separated with tabs
+
+        //below when appending
+        if(prog_options.logging==2)
+             fprintf(fp_log_file2,"%d.%d\t",value->tv_sec,value->tv_nsec);
+    }
 }
 
 void atexit_runsttysane()

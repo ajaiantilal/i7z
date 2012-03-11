@@ -573,7 +573,7 @@ void print_i7z_socket_single(struct cpu_socket_info socket_0, int printw_offset,
         //time_t time_to_save;
         //logCpuFreq_single_d(time(&time_to_save));
         clock_gettime(CLOCK_REALTIME, &global_ts);
-        logCpuFreq_single( (float)global_ts.tv_sec + (float)global_ts.tv_nsec*10e-9);
+        logCpuFreq_single_ts( &global_ts);
         
         for (ii = 0; ii < numCPUs; ii++) {
             assert(ii < MAX_SK_PROCESSORS);
