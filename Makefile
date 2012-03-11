@@ -19,36 +19,44 @@
 
 #explicitly disable two scheduling flags as they cause segfaults
 CFLAGS_FOR_AVOIDING_SEG_FAULT = -fno-schedule-insns2  -fno-schedule-insns
-CFLAGSANY = $(CFLAGS_FOR_AVOIDING_SEG_FAULT) -O0 -g  -D_GNU_SOURCE -D_FILE_OFFSET_BITS=64 -DBUILD_MAIN
+CFLAGS ?= -O0 -g
+CFLAGS += $(CFLAGS_FOR_AVOIDING_SEG_FAULT) -D_GNU_SOURCE -D_FILE_OFFSET_BITS=64 -DBUILD_MAIN
 
 LBITS := $(shell getconf LONG_BIT)
 ifeq ($(LBITS),64)
-   CFLAGS = $(CFLAGSANY) -Dx64_BIT
+   CFLAGS += -Dx64_BIT
 else
-   CFLAGS = $(CFLAGSANY) -Dx86
+   CFLAGS += -Dx86
 endif
 
-CC       = gcc 
+CC       ?= gcc 
 
-LDFLAGS  = -lncurses -lpthread -lrt
+LIBS  += -lncurses -lpthread -lrt -lm
 INCLUDEFLAGS = 
 
 OBJS = helper_functions
 
 BIN	= i7z
+PERFMON-BIN = perfmon-i7z
 SRC	= i7z.c helper_functions.c i7z_Single_Socket.c i7z_Dual_Socket.c
+OBJ	= $(SRC:.c=.o)
 
-sbindir = /usr/sbin
+prefix = /usr
+sbindir = $(prefix)/sbin
+docdir = $(prefix)/share/doc/$(BIN)
 
-all: clean message bin test_exist
+all: test_exist
 
 message:
 	@echo "If the compilation complains about not finding ncurses.h, install ncurses (libncurses5-dev on ubuntu/debian)"
 
-bin: 
-	$(CC) $(CFLAGS) $(INCLUDEFLAGS) $(SRC) $(LDFLAGS) -o $(BIN)
+bin: message $(OBJ)
+	$(CC) $(CFLAGS) $(LDFLAGS) -o $(BIN) $(OBJ) $(LIBS)
 
-test_exist:
+perfmon-bin: message $(OBJ)
+	$(CC) $(CFLAGS) $(LDFLAGS) -o $(PERFMON-BIN) perfmon-i7z.c helper_functions.c $(LIBS)
+
+test_exist: bin
 	@test -f i7z && echo 'Succeeded, now run sudo ./i7z' || echo 'Compilation failed'
 
 clean:
@@ -57,6 +65,7 @@ clean:
 distclean: clean
 	rm -f *~ \#*
 
-install: all
-	install -m 755 $(BIN) $(sbindir)
-
+install: $(BIN)
+	install -d $(DESTDIR)$(sbindir) $(DESTDIR)$(docdir)
+	install -m 755 $(BIN) $(DESTDIR)$(sbindir)
+	install -m 0644 README.txt put_cores_offline.sh put_cores_online.sh MAKEDEV-cpuid-msr $(DESTDIR)$(docdir)

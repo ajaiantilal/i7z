@@ -88,6 +88,7 @@ void logCpuFreq_single_d(int value)
 	fprintf(fp_log_file,"%d\t",value);
 }
 
+// fix for issue 48, suggested by Hakan
 void logCpuFreq_single_ts(struct timespec  *value) //HW use timespec to avoid floating point overflow
 {
     //below when just logging
