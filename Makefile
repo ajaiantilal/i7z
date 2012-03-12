@@ -17,8 +17,9 @@
 
 #makefile updated from patch by anestling
 
-#explicitly disable two scheduling flags as they cause segfaults
-CFLAGS_FOR_AVOIDING_SEG_FAULT = -fno-schedule-insns2  -fno-schedule-insns
+#explicitly disable two scheduling flags as they cause segfaults, two more seem to crash the GUI version so putting them
+#here 
+CFLAGS_FOR_AVOIDING_SEG_FAULT = -fno-schedule-insns2  -fno-schedule-insns -fno-inline-small-functions -fno-caller-saves
 CFLAGS ?= -O0 -g
 CFLAGS += $(CFLAGS_FOR_AVOIDING_SEG_FAULT) -D_GNU_SOURCE -D_FILE_OFFSET_BITS=64 -DBUILD_MAIN
 
@@ -37,7 +38,7 @@ INCLUDEFLAGS =
 OBJS = helper_functions
 
 BIN	= i7z
-PERFMON-BIN = perfmon-i7z
+# PERFMON-BIN = perfmon-i7z #future version to include performance monitor, either standalone or integrated
 SRC	= i7z.c helper_functions.c i7z_Single_Socket.c i7z_Dual_Socket.c
 OBJ	= $(SRC:.c=.o)
 
@@ -53,8 +54,8 @@ message:
 bin: message $(OBJ)
 	$(CC) $(CFLAGS) $(LDFLAGS) -o $(BIN) $(OBJ) $(LIBS)
 
-perfmon-bin: message $(OBJ)
-	$(CC) $(CFLAGS) $(LDFLAGS) -o $(PERFMON-BIN) perfmon-i7z.c helper_functions.c $(LIBS)
+# perfmon-bin: message $(OBJ)
+# 	$(CC) $(CFLAGS) $(LDFLAGS) -o $(PERFMON-BIN) perfmon-i7z.c helper_functions.c $(LIBS)
 
 test_exist: bin
 	@test -f i7z && echo 'Succeeded, now run sudo ./i7z' || echo 'Compilation failed'

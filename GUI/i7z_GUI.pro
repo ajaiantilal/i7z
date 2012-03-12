@@ -6,7 +6,10 @@ TEMPLATE = app
 TARGET = 
 DEPENDPATH += .
 INCLUDEPATH += .
-CONFIG += debug
-CFLAGS += -g
+CONFIG += release
+CFLAGS +=  #QMAKE_*FLAGS are where the gcc flags should be passed
+CXXFLAGS += 
+QMAKE_CFLAGS += -O1 -v -fno-schedule-insns2 -fno-schedule-insns -fno-inline-small-functions -fno-caller-saves 
+QMAKE_CXXFLAGS += -O1 -v -fno-schedule-insns2 -fno-schedule-insns -fno-inline-small-functions -fno-caller-saves
 # Input
 SOURCES += i7z_GUI.cpp
