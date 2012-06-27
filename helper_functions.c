@@ -378,7 +378,7 @@ void Print_Information_Processor(bool* nehalem, bool* sandy_bridge)
     //0x2, 0xA - i7, 32nm
 
     //http://ark.intel.com/SSPECQDF.aspx
-
+    //http://software.intel.com/en-us/articles/intel-processor-identification-with-cpuid-model-and-family-numbers/
     printf("i7z DEBUG: msr = Model Specific Register\n");
     if (proc_info.family >= 0x6)
     {
@@ -399,8 +399,7 @@ void Print_Information_Processor(bool* nehalem, bool* sandy_bridge)
             }
    	    *nehalem = true;
 	    *sandy_bridge = false;
-        } else if (proc_info.extended_model == 0x2)
-        {
+        } else if (proc_info.extended_model == 0x2) {
             switch (proc_info.model)
             {
             case 0xE:
@@ -436,10 +435,27 @@ void Print_Information_Processor(bool* nehalem, bool* sandy_bridge)
 	        break;
             default:
                 printf ("i7z DEBUG: Unknown processor, not exactly based on Nehalem\n");
+                printf("i7z DEBUG: detected a newer model of ivy bridge processor\n");
+                printf("i7z DEBUG: my coder doesn't know about it, can you send the following info to him?\n");
+                printf("i7z DEBUG: model %x, extended model %x, proc_family %x\n", proc_info.model, proc_info.extended_model, proc_info.family);
                 //exit (1);
             }
+        } else if (proc_info.extended_model == 0x3) {
+            switch (proc_info.model)
+            {
+            case 0xA:
+                printf ("i7z DEBUG: Detected an ivy bridege processor\n");
+		*nehalem = false;
+  	    	*sandy_bridge = true;
+                break;
+            default:
+                printf("i7z DEBUG: detected a newer model of ivy bridge processor\n");
+                printf("i7z DEBUG: my coder doesn't know about it, can you send the following info to him?\n");
+                printf("i7z DEBUG: model %x, extended model %x, proc_family %x\n", proc_info.model, proc_info.extended_model, proc_info.family);
+                sleep(5);
+            }
         } else {
-            printf ("i7z DEBUG: Unknown processor, not exactly based on Nehalem\n");
+            printf ("i7z DEBUG: Unknown processor, not exactly based on Nehalem, Sandy bridge or Ivy Bridge\n");
             //exit (1);
         }
     } else {

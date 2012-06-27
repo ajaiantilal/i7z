@@ -54,6 +54,10 @@ message:
 bin: message $(OBJ)
 	$(CC) $(CFLAGS) $(LDFLAGS) -o $(BIN) $(OBJ) $(LIBS)
 
+#http://bugs.debian.org/cgi-bin/bugreport.cgi?bug=644728 for -ltinfo on debian
+static-bin: message $(OBJ)
+	$(CC) $(CFLAGS) $(LDFLAGS) -o $(BIN) $(OBJ) -static-libgcc -DNCURSES_STATIC -static -lpthread -lncurses -lrt -lm -ltinfo
+
 # perfmon-bin: message $(OBJ)
 # 	$(CC) $(CFLAGS) $(LDFLAGS) -o $(PERFMON-BIN) perfmon-i7z.c helper_functions.c $(LIBS)
 
