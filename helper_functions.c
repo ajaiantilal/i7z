@@ -111,8 +111,8 @@ void  get_vendor (char *vendor_string)
     unsigned int a, b, c, d;
     cpuid (0, &a, &b, &c, &d);
     memcpy (vendor_string, &b, 4);
-    memcpy (vendor_string + 4, &d, 4);
-    memcpy (vendor_string + 8, &c, 4);
+    memcpy (&vendor_string[4], &d, 4);
+    memcpy (&vendor_string[8], &c, 4);
     vendor_string[12] = '\0';
     //        printf("Vendor %s\n",vendor_string);
 }
@@ -344,11 +344,27 @@ void Print_Information_Processor(bool* nehalem, bool* sandy_bridge)
     struct family_info proc_info;
 
     char vendor_string[13];
+    memset(vendor_string,0,13);
+    
     get_vendor (vendor_string);
-    if (strcmp (vendor_string, "GenuineIntel") == 0)
+    vendor_string[12] = '\0';
+
+    //look at the blurb below for why strcmp is done byte by byte
+    bool equal_string = true;
+    char const* genuine_intel_str = "GenuineIntel";
+    int i;
+    for(i=0; i<12;i++) {
+        if (vendor_string[i] != genuine_intel_str[i])
+            equal_string = false;
+    }
+    // somehow using strcmp or strncmp is crashing the app when using -O2, -O3 with gcc-4.7
+    // (strncmp (vendor_string, "GenuineIntel",12) == 0)
+    // (strcmp (vendor_string, "GenuineIntel",12) == 0)
+
+    //if  {
+    if (equal_string) {
         printf ("i7z DEBUG: Found Intel Processor\n");
-    else
-    {
+    } else {
         printf
         ("this was designed to be a intel proc utility. You can perhaps mod it for your machine?\n");
         exit (1);

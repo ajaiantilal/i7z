@@ -21,7 +21,7 @@
 #here 
 CFLAGS_FOR_AVOIDING_SEG_FAULT = -fno-schedule-insns2  -fno-schedule-insns -fno-inline-small-functions -fno-caller-saves
 CFLAGS ?= -O0 -g
-CFLAGS += $(CFLAGS_FOR_AVOIDING_SEG_FAULT) -D_GNU_SOURCE -D_FILE_OFFSET_BITS=64 -DBUILD_MAIN
+CFLAGS += $(CFLAGS_FOR_AVOIDING_SEG_FAULT) -D_GNU_SOURCE -D_FILE_OFFSET_BITS=64 -DBUILD_MAIN -Wimplicit-function-declaration
 
 LBITS := $(shell getconf LONG_BIT)
 ifeq ($(LBITS),64)
@@ -30,7 +30,7 @@ else
    CFLAGS += -Dx86
 endif
 
-CC       ?= gcc 
+CC       ?= gcc
 
 LIBS  += -lncurses -lpthread -lrt -lm
 INCLUDEFLAGS = 
@@ -46,7 +46,7 @@ prefix = /usr
 sbindir = $(prefix)/sbin
 docdir = $(prefix)/share/doc/$(BIN)
 
-all: test_exist
+all: clean test_exist
 
 message:
 	@echo "If the compilation complains about not finding ncurses.h, install ncurses (libncurses5-dev on ubuntu/debian)"

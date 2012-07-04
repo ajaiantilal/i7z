@@ -41,6 +41,9 @@ extern char* CPU_FREQUENCY_LOGGING_FILE_single;
 extern char* CPU_FREQUENCY_LOGGING_FILE_dual;
 extern bool use_ncurses;
 
+void logCpuFreq_single_ts( struct timespec*);
+
+
 void print_i7z_socket_single(struct cpu_socket_info socket_0, int printw_offset, int PLATFORM_INFO_MSR,  int PLATFORM_INFO_MSR_high,  int PLATFORM_INFO_MSR_low,
                              int* online_cpus, double cpu_freq_cpuinfo,  struct timespec one_second_sleep, char TURBO_MODE,
                              char* HT_ON_str, int* kk_1, U_L_L_I * old_val_CORE, U_L_L_I * old_val_REF, U_L_L_I * old_val_C3, U_L_L_I * old_val_C6, U_L_L_I * old_val_C7,
