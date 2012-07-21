@@ -30,7 +30,7 @@ else
    CFLAGS += -Dx86
 endif
 
-CC       = gcc
+CC       ?= gcc
 
 LIBS  += -lncurses -lpthread -lrt -lm
 INCLUDEFLAGS = 
