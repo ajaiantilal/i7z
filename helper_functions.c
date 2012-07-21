@@ -6,7 +6,7 @@
 // http://download.intel.com/design/processor/applnots/320354.pdf
 // Appendix B of http://www.intel.com/Assets/PDF/manual/253669.pdf
 
-
+//about rdmsr
 #ident "$Id: rdmsr.c,v 1.4 2004/07/20 15:54:59 hpa Exp $"
  ----------------------------------------------------------------------- *
  *
@@ -14,8 +14,9 @@
  *
  *   This program is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU General Public License as published by
- *   the Free Software Foundation, Inc., 675 Mass Ave, Cambridge MA 02139,
- *   USA; either version 2 of the License, or (at your option) any later
+ *   the Free Software Foundation, Inc., 51 Franklin St, Fifth Floor,
+ *   Boston, MA 02110-1301, USA; 
+ *   either version 2 of the License, or (at your option) any later
  *   version; incorporated herein by reference.
  *
  * ----------------------------------------------------------------------- */
@@ -505,6 +506,7 @@ void Test_Or_Make_MSR_DEVICE_FILES()
         if (geteuid () == 0)
         {
             //Try the Makedev script
+            //sourced from MAKEDEV-cpuid-msr script in msr-tools
             system ("msr_major=202; \
 							cpuid_major=203; \
 							n=0; \

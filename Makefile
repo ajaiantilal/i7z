@@ -1,18 +1,5 @@
-#ident "$Id: Makefile,v 1.2 2004/07/20 15:54:59 hpa Exp $"
-## -----------------------------------------------------------------------
-##
-##   Copyright 2000 Transmeta Corporation - All Rights Reserved
-##
-##   This program is free software; you can redistribute it and/or modify
-##   it under the terms of the GNU General Public License as published by
-##   the Free Software Foundation, Inc., 675 Mass Ave, Cambridge MA 02139,
-##   USA; either version 2 of the License, or (at your option) any later
-##   version; incorporated herein by reference.
-##
-## -----------------------------------------------------------------------
-
 #
-# Makefile for MSRs
+# Makefile for i7z, GPL v2, License in COPYING
 #
 
 #makefile updated from patch by anestling
@@ -20,7 +7,7 @@
 #explicitly disable two scheduling flags as they cause segfaults, two more seem to crash the GUI version so putting them
 #here 
 CFLAGS_FOR_AVOIDING_SEG_FAULT = -fno-schedule-insns2  -fno-schedule-insns -fno-inline-small-functions -fno-caller-saves
-CFLAGS ?= -O1 -g
+CFLAGS ?= -O3
 CFLAGS += $(CFLAGS_FOR_AVOIDING_SEG_FAULT) -D_GNU_SOURCE -D_FILE_OFFSET_BITS=64 -DBUILD_MAIN -Wimplicit-function-declaration
 
 LBITS := $(shell getconf LONG_BIT)
@@ -45,6 +32,7 @@ OBJ	= $(SRC:.c=.o)
 prefix = /usr
 sbindir = $(prefix)/sbin
 docdir = $(prefix)/share/doc/$(BIN)
+mandir ?= /usr/share/man/
 
 all: clean test_exist
 
@@ -70,7 +58,8 @@ clean:
 distclean: clean
 	rm -f *~ \#*
 
-install: $(BIN)
+install: all $(BIN)
+	install -m 0644 doc/i7z.man $(mandir)man1/i7z.1
 	install -d $(DESTDIR)$(sbindir) $(DESTDIR)$(docdir)
 	install -m 755 $(BIN) $(DESTDIR)$(sbindir)
 	install -m 0644 README.txt put_cores_offline.sh put_cores_online.sh MAKEDEV-cpuid-msr $(DESTDIR)$(docdir)

@@ -1,5 +1,5 @@
-license: My code is GPLv2
-Current Version: svn-71 (Nov/2011)
+license: My code is GPLv2, Details in COPYING
+Current Version: svn-92 (July/2012)
 
 Compiling:
 32/64-bit linux:

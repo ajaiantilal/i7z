@@ -1,4 +1,7 @@
 #!/bin/sh
+
+#this script is sourced from msr-tools package
+
 msr_major=202
 cpuid_major=203
 n=0

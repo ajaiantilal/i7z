@@ -2,9 +2,9 @@
 .SH NAME
 i7z \- A better i7 (and now i3, i5) reporting tool for Linux.
 .SH SYNOPSIS
-\fBi7z [OPTION]\fP
+\fBi7z [OPTION]\fP, [OPTION] is optional. i7z needs to be run in super user (root) mode.
 .SH DESCRIPTION
-i7z runs the i7z, ncurses based, program without any options.
+i7z runs the i7z, ncurses based, program without any options. i7z will print out the C-states and temperature for i3, i5 and i7 based Core processors from Intel (including Nehalems, Sandy Bridge and Ivy Bridge). 
 .SH OPTIONS
 .TP
 \fB-h, --help \fPshow the list of options available with the i7z tool.
