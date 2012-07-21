@@ -1,0 +1,28 @@
+.TH i7z 1 "20 July 2012"
+.SH NAME
+i7z \- A better i7 (and now i3, i5) reporting tool for Linux.
+.SH SYNOPSIS
+\fBi7z [OPTION]\fP
+.SH DESCRIPTION
+i7z runs the i7z, ncurses based, program without any options.
+.SH OPTIONS
+.TP
+\fB-h, --help \fPshow the list of options available with the i7z tool.
+.TP
+\fB-w  [a|l],  --write  [a,l] \fPLogging of the frequencies can be turned on with this options. Option "-w a" or "--write a" will append to the  log file. Option "-w l" or "--write l" will replace the log file.
+.TP
+\fB-l,  --logfile  [FILENAME] \fPChange  the  log file name to the specified FILENAME. Default logging file is cpu_freq_log.txt (single  socket) or cpu_freq_log_dual%d.txt (dual socket, %d is either 0, 1).
+.TP
+\fB--socket0  [SOCKETNUM], --socket1 [SOCKETNUM] \fPThe tool can print information for about 2 sockets at once at the most. The top view  will  be, by  default, of the first socket (controlled by --socket0) and the bottom view will be of the second socket (controlled by --socket1). Supply the appropriate value of 0 or 1 or more for SOCKETNUM (if there are more sockets on the machine) to show in the top and bottom view.
+.TP
+\fB--nogui \fPDisable the GUI. Useful when the only need is logging.
+.SH Example
+To print for two sockets and also change the log file (log to /tmp/logfilei7z)
+
+i7z \-\-socket0 0 \-\-socket1 1 \-logfile /tmp/logfilei7z \-w l
+
+.SH BUGS
+Do report bugs or feature enhancement as an issue at http://code.google.com/p/i7z.
+
+.SH AUTHORS
+Written in 2010, by Abhishek Jaiantilal (abhirana @ gmail.com). i7z  is licensed  under the terms of the GNU  General Public License (GPL) version 2.

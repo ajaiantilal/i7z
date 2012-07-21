@@ -104,11 +104,11 @@ __asm__ __volatile__ ("rdtsc":"=a" (lo), "=d" (hi));
 
 void print_family_info (struct family_info *proc_info);
 
-void get_vendor (char *vendor_string);
+//void get_vendor (char *vendor_string);
 
 int turbo_status ();
 double cpufreq_info();
-void get_familyinformation (struct family_info *proc_info);
+//void get_familyinformation (struct family_info *proc_info);
 
 double estimate_MHz ();
 

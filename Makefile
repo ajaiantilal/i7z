@@ -20,7 +20,7 @@
 #explicitly disable two scheduling flags as they cause segfaults, two more seem to crash the GUI version so putting them
 #here 
 CFLAGS_FOR_AVOIDING_SEG_FAULT = -fno-schedule-insns2  -fno-schedule-insns -fno-inline-small-functions -fno-caller-saves
-CFLAGS ?= -O0 -g
+CFLAGS ?= -O1 -g
 CFLAGS += $(CFLAGS_FOR_AVOIDING_SEG_FAULT) -D_GNU_SOURCE -D_FILE_OFFSET_BITS=64 -DBUILD_MAIN -Wimplicit-function-declaration
 
 LBITS := $(shell getconf LONG_BIT)
@@ -30,7 +30,7 @@ else
    CFLAGS += -Dx86
 endif
 
-CC       ?= gcc
+CC       = gcc
 
 LIBS  += -lncurses -lpthread -lrt -lm
 INCLUDEFLAGS = 
