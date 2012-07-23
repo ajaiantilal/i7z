@@ -58,7 +58,7 @@ clean:
 distclean: clean
 	rm -f *~ \#*
 
-install: all $(BIN)
+install: bin $(BIN)
 	install -m 0644 doc/i7z.man $(mandir)man1/i7z.1
 	install -d $(DESTDIR)$(sbindir) $(DESTDIR)$(docdir)
 	install -m 755 $(BIN) $(DESTDIR)$(sbindir)
