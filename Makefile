@@ -22,17 +22,15 @@ CC       ?= gcc
 LIBS  += -lncurses -lpthread -lrt -lm
 INCLUDEFLAGS = 
 
-OBJS = helper_functions
-
 BIN	= i7z
 # PERFMON-BIN = perfmon-i7z #future version to include performance monitor, either standalone or integrated
 SRC	= i7z.c helper_functions.c i7z_Single_Socket.c i7z_Dual_Socket.c
 OBJ	= $(SRC:.c=.o)
 
-prefix = /usr
+prefix ?= /usr
 sbindir = $(prefix)/sbin
 docdir = $(prefix)/share/doc/$(BIN)
-mandir ?= /usr/share/man/
+mandir ?= $(prefix)/share/man/
 
 all: clean test_exist
 
@@ -58,7 +56,7 @@ clean:
 distclean: clean
 	rm -f *~ \#*
 
-install: bin $(BIN)
+install:  $(BIN)
 	install -m 0644 doc/i7z.man $(mandir)man1/i7z.1
 	install -d $(DESTDIR)$(sbindir) $(DESTDIR)$(docdir)
 	install -m 755 $(BIN) $(DESTDIR)$(sbindir)
