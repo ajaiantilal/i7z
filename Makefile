@@ -57,7 +57,7 @@ distclean: clean
 	rm -f *~ \#*
 
 install:  $(BIN)
-	install -m 0644 doc/i7z.man $(mandir)man1/i7z.1
+	install -m 0644 doc/i7z.man $(DESTDIR)$(mandir)man1/i7z.1
 	install -d $(DESTDIR)$(sbindir) $(DESTDIR)$(docdir)
 	install -m 755 $(BIN) $(DESTDIR)$(sbindir)
 	install -m 0644 README.txt put_cores_offline.sh put_cores_online.sh MAKEDEV-cpuid-msr $(DESTDIR)$(docdir)
