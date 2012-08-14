@@ -45,7 +45,16 @@ void logOpenFile_dual(int);
 void logCloseFile_dual(int);
 void logCpuFreq_dual(float,int);
 void logCpuFreq_dual_d(int, int);
+void logCpuFreq_dual_ts(struct timespec  *value, int) ;
 
+void logCpuCstates_single(float value);
+void logCpuCstates_single_c(char* value);
+//void logCpuCstates_single_d(int value);
+void logCpuCstates_single_ts(struct timespec  *value) ;
+
+void logCpuCstates_dual(float value, int);
+void logCpuCstates_dual_c(char* value, int);
+void logCpuCstates_dual_ts(struct timespec  *value, int) ;
 
 struct cpu_heirarchy_info {
     int max_online_cpu;

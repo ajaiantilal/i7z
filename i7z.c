@@ -26,6 +26,8 @@
 struct program_options prog_options;
 char* CPU_FREQUENCY_LOGGING_FILE_single="cpu_freq_log.txt";
 char* CPU_FREQUENCY_LOGGING_FILE_dual="cpu_freq_log_dual_%d.txt";
+char* CSTATE_LOGGING_FILE_single="cpu_cstate_log.txt";
+char* CSTATE_LOGGING_FILE_dual="cpu_cstate_log_dual_%d.txt";
 
 int Single_Socket();
 int Dual_Socket();
@@ -34,177 +36,227 @@ int socket_0_num=0, socket_1_num=1;
 bool use_ncurses = true;
 
 /////////////////////LOGGING TO FILE////////////////////////////////////////
-FILE *fp_log_file;
-FILE *fp_log_file1, *fp_log_file2;
+FILE *fp_log_file_freq;
+FILE *fp_log_file_freq_1, *fp_log_file_freq_2;
+
+FILE *fp_log_file_Cstates;
+FILE *fp_log_file_Cstates_1, *fp_log_file_Cstates_2;
 
 void logOpenFile_single()
 {
-    if(prog_options.logging==1)
-	fp_log_file = fopen(CPU_FREQUENCY_LOGGING_FILE_single,"w");
-    else if(prog_options.logging==2)
-	fp_log_file = fopen(CPU_FREQUENCY_LOGGING_FILE_single,"a");
+    if(prog_options.logging==1) {
+        fp_log_file_freq = fopen(CPU_FREQUENCY_LOGGING_FILE_single,"w");
+        fp_log_file_Cstates = fopen(CSTATE_LOGGING_FILE_single,"w");
+    } else if(prog_options.logging==2) {
+        fp_log_file_freq = fopen(CPU_FREQUENCY_LOGGING_FILE_single,"a");
+        fp_log_file_Cstates = fopen(CSTATE_LOGGING_FILE_single,"a");
+    }
 }
 
 void logCloseFile_single()
 {
     if(prog_options.logging!=0){
-	if(prog_options.logging==2)
-	    fprintf(fp_log_file,"\n");
-	//the above line puts a \n after every freq is logged.
-	fclose(fp_log_file);
+        if(prog_options.logging==2)
+        fprintf(fp_log_file_freq,"\n");
+        //the above line puts a \n after every freq is logged.
+        fclose(fp_log_file_freq);
+
+        fprintf(fp_log_file_Cstates,"\n");
+        //the above line puts a \n after every CSTATE is logged.
+        fclose(fp_log_file_Cstates);
+        
     }
 }
+
+// For dual socket make filename based on the socket number
+void logOpenFile_dual(int socket_num)
+{
+    char str_file1[100];
+    snprintf(str_file1,100,CPU_FREQUENCY_LOGGING_FILE_dual,socket_num);
+
+    char str_file2[100];
+    snprintf(str_file2,100,CSTATE_LOGGING_FILE_dual,socket_num);
+
+    if(socket_num==0){
+        if(prog_options.logging==1)
+            fp_log_file_freq_1 = fopen(str_file1,"w");
+        else if(prog_options.logging==2)
+            fp_log_file_freq_1 = fopen(str_file1,"a");
+    }
+    if(socket_num==1){
+        if(prog_options.logging==1)
+            fp_log_file_freq_2 = fopen(str_file1,"w");
+        else if(prog_options.logging==2)
+            fp_log_file_freq_2 = fopen(str_file1,"a");
+    }
+
+    if(socket_num==0){
+        if(prog_options.logging==1)
+            fp_log_file_Cstates_1 = fopen(str_file2,"w");
+        else if(prog_options.logging==2)
+            fp_log_file_Cstates_1 = fopen(str_file2,"a");
+    }
+    if(socket_num==1){
+        if(prog_options.logging==1)
+            fp_log_file_Cstates_2 = fopen(str_file2,"w");
+        else if(prog_options.logging==2)
+            fp_log_file_Cstates_2 = fopen(str_file2,"a");
+    }
+}
+
+void logCloseFile_dual(int socket_num)
+{
+    if(socket_num==0){
+        if(prog_options.logging!=0){
+            if(prog_options.logging==2)
+                fprintf(fp_log_file_freq_1,"\n");
+                //the above line puts a \n after every freq is logged.
+            fclose(fp_log_file_freq_1);
+        }
+    }
+    if(socket_num==1){
+        if(prog_options.logging!=0){
+            if(prog_options.logging==2)
+                fprintf(fp_log_file_freq_2,"\n");
+                //the above line puts a \n after every freq is logged.
+            fclose(fp_log_file_freq_2);
+        }
+    }
+
+
+    if(socket_num==0){
+        if(prog_options.logging!=0){
+            if(prog_options.logging==2)
+                fprintf(fp_log_file_Cstates_1,"\n");
+                //the above line puts a \n after every freq is logged.
+            fclose(fp_log_file_Cstates_1);
+        }
+    }
+    if(socket_num==1){
+        if(prog_options.logging!=0){
+            if(prog_options.logging==2)
+                fprintf(fp_log_file_Cstates_2,"\n");
+                //the above line puts a \n after every freq is logged.
+            fclose(fp_log_file_Cstates_2);
+        }
+    }
+}
+
 
 void logCpuFreq_single(float value)
 {
     //below when just logging
-    if(prog_options.logging==1)
-	fprintf(fp_log_file,"%f\n",value); //newline, replace \n with \t to get everything separated with tabs
-   
+    if(prog_options.logging==1) {
+        fprintf(fp_log_file_freq,"%f\n",value); //newline, replace \n with \t to get everything separated with tabs
+    }
     //below when appending
-    if(prog_options.logging==2)
-	fprintf(fp_log_file,"%f\t",value);
+    if(prog_options.logging==2) {
+        fprintf(fp_log_file_freq,"%f\t",value);
+    }
 }
 
 void logCpuFreq_single_c(char* value)
 {
     //below when just logging
-    if(prog_options.logging==1)
-	fprintf(fp_log_file,"%s\n",value); //newline, replace \n with \t to get everything separated with tabs
-   
+    if(prog_options.logging==1) {
+        fprintf(fp_log_file_freq,"%s\n",value); //newline, replace \n with \t to get everything separated with tabs
+    }
     //below when appending
-    if(prog_options.logging==2)
-	fprintf(fp_log_file,"%s\t",value);
+    if(prog_options.logging==2) {
+        fprintf(fp_log_file_freq,"%s\t",value);
+    }
 }
 
 void logCpuFreq_single_d(int value)
 {
     //below when just logging
-    if(prog_options.logging==1)
-	fprintf(fp_log_file,"%d\n",value); //newline, replace \n with \t to get everything separated with tabs
-   
+    if(prog_options.logging==1) {
+        fprintf(fp_log_file_freq,"%d\n",value); //newline, replace \n with \t to get everything separated with tabs
+    }
     //below when appending
-    if(prog_options.logging==2)
-	fprintf(fp_log_file,"%d\t",value);
+    if(prog_options.logging==2) {
+        fprintf(fp_log_file_freq,"%d\t",value);
+    }
 }
 
 // fix for issue 48, suggested by Hakan
 void logCpuFreq_single_ts(struct timespec  *value) //HW use timespec to avoid floating point overflow
 {
     //below when just logging
-    if(prog_options.logging==1)
-        fprintf(fp_log_file,"%d.%d\n",value->tv_sec,value->tv_nsec); //newline, replace \n with \t to get everything separated with tabs
-
+    if(prog_options.logging==1) {
+        fprintf(fp_log_file_freq,"%d.%.9d\n",value->tv_sec,value->tv_nsec); //newline, replace \n with \t to get everything separated with tabs
+    }
     //below when appending
-    if(prog_options.logging==2)
-        fprintf(fp_log_file,"%d.%d\t",value->tv_sec,value->tv_nsec);
+    if(prog_options.logging==2) {
+        fprintf(fp_log_file_freq,"%d.%.9d\t",value->tv_sec,value->tv_nsec);
+    }
 }
 
-
-// For dual socket make filename based on the socket number
-void logOpenFile_dual(int socket_num)
-{
-	char str_file[100];
-	snprintf(str_file,100,CPU_FREQUENCY_LOGGING_FILE_dual,socket_num);
-
-	if(socket_num==0){
-		if(prog_options.logging==1)
-			fp_log_file1 = fopen(str_file,"w");
-		else if(prog_options.logging==2)
-			fp_log_file1 = fopen(str_file,"a");
-	}
-	if(socket_num==1){
-		if(prog_options.logging==1)
-			fp_log_file2 = fopen(str_file,"w");
-		else if(prog_options.logging==2)
-			fp_log_file2 = fopen(str_file,"a");
-	}
-}
-
-void logCloseFile_dual(int socket_num)
-{
-	if(socket_num==0){
-		if(prog_options.logging!=0){
-			if(prog_options.logging==2)
-				fprintf(fp_log_file1,"\n");
-			//the above line puts a \n after every freq is logged.
-			fclose(fp_log_file1);
-		}
-	}
-	if(socket_num==1){
-		if(prog_options.logging!=0){
-			if(prog_options.logging==2)
-				fprintf(fp_log_file2,"\n");
-			//the above line puts a \n after every freq is logged.
-			fclose(fp_log_file2);
-		}
-	}
-}
 
 void logCpuFreq_dual(float value,int socket_num)
 {
-	if(socket_num==0){
-		//below when just logging
-		if(prog_options.logging==1)
-		fprintf(fp_log_file1,"%f\n",value); //newline, replace \n with \t to get everything separated with tabs
-	   
-		//below when appending
-		if(prog_options.logging==2)
-		fprintf(fp_log_file1,"%f\t",value);
-	}
-	if(socket_num==1){
-		//below when just logging
-		if(prog_options.logging==1)
-		fprintf(fp_log_file2,"%f\n",value); //newline, replace \n with \t to get everything separated with tabs
-	   
-		//below when appending
-		if(prog_options.logging==2)
-		fprintf(fp_log_file2,"%f\t",value);
-	}
+    if(socket_num==0){
+        //below when just logging
+        if(prog_options.logging==1)
+            fprintf(fp_log_file_freq_1,"%f\n",value); //newline, replace \n with \t to get everything separated with tabs
+  
+        //below when appending
+        if(prog_options.logging==2)
+            fprintf(fp_log_file_freq_1,"%f\t",value);
+    }
+    if(socket_num==1){
+        //below when just logging
+        if(prog_options.logging==1)
+            fprintf(fp_log_file_freq_2,"%f\n",value); //newline, replace \n with \t to get everything separated with tabs
+   
+        //below when appending
+        if(prog_options.logging==2)
+            fprintf(fp_log_file_freq_2,"%f\t",value);
+    }
 }
 
 void logCpuFreq_dual_c(char* value,int socket_num)
 {
-	if(socket_num==0){
-		//below when just logging
-		if(prog_options.logging==1)
-		fprintf(fp_log_file1,"%s\n",value); //newline, replace \n with \t to get everything separated with tabs
-	   
-		//below when appending
-		if(prog_options.logging==2)
-		fprintf(fp_log_file1,"%s\t",value);
-	}
-	if(socket_num==1){
-		//below when just logging
-		if(prog_options.logging==1)
-		fprintf(fp_log_file2,"%s\n",value); //newline, replace \n with \t to get everything separated with tabs
-	   
-		//below when appending
-		if(prog_options.logging==2)
-		fprintf(fp_log_file2,"%s\t",value);
-	}
+    if(socket_num==0){
+        //below when just logging
+        if(prog_options.logging==1)
+            fprintf(fp_log_file_freq_1,"%s\n",value); //newline, replace \n with \t to get everything separated with tabs
+       
+        //below when appending
+        if(prog_options.logging==2)
+            fprintf(fp_log_file_freq_1,"%s\t",value);
+    }
+    if(socket_num==1){
+        //below when just logging
+        if(prog_options.logging==1)
+            fprintf(fp_log_file_freq_2,"%s\n",value); //newline, replace \n with \t to get everything separated with tabs
+   
+        //below when appending
+        if(prog_options.logging==2)
+            fprintf(fp_log_file_freq_2,"%s\t",value);
+    }
 }
 
 void logCpuFreq_dual_d(int value,int socket_num)
 {
-	if(socket_num==0){
-		//below when just logging
-		if(prog_options.logging==1)
-		fprintf(fp_log_file1,"%d\n",value); //newline, replace \n with \t to get everything separated with tabs
-	   
-		//below when appending
-		if(prog_options.logging==2)
-		fprintf(fp_log_file1,"%d\t",value);
-	}
-	if(socket_num==1){
-		//below when just logging
-		if(prog_options.logging==1)
-		fprintf(fp_log_file2,"%d\n",value); //newline, replace \n with \t to get everything separated with tabs
-	   
-		//below when appending
-		if(prog_options.logging==2)
-		fprintf(fp_log_file2,"%d\t",value);
-	}
+    if(socket_num==0){
+        //below when just logging
+        if(prog_options.logging==1)
+            fprintf(fp_log_file_freq_1,"%d\n",value); //newline, replace \n with \t to get everything separated with tabs
+   
+        //below when appending
+        if(prog_options.logging==2)
+            fprintf(fp_log_file_freq_1,"%d\t",value);
+    }
+    if(socket_num==1){
+        //below when just logging
+        if(prog_options.logging==1)
+            fprintf(fp_log_file_freq_2,"%d\n",value); //newline, replace \n with \t to get everything separated with tabs
+       
+        //below when appending
+        if(prog_options.logging==2)
+            fprintf(fp_log_file_freq_2,"%d\t",value);
+    }
 }
 
 void logCpuFreq_dual_ts(struct timespec  *value, int socket_num) //HW use timespec to avoid floating point overflow
@@ -212,22 +264,119 @@ void logCpuFreq_dual_ts(struct timespec  *value, int socket_num) //HW use timesp
     if(socket_num==0){
         //below when just logging
         if(prog_options.logging==1)
-            fprintf(fp_log_file1,"%d.%d\n",value->tv_sec,value->tv_nsec); //newline, replace \n with \t to get everything separated with tabs
+            fprintf(fp_log_file_freq_1,"%d.%.9d\n",value->tv_sec,value->tv_nsec); //newline, replace \n with \t to get everything separated with tabs
 
         //below when appending
         if(prog_options.logging==2)
-             fprintf(fp_log_file1,"%d.%d\t",value->tv_sec,value->tv_nsec);
+             fprintf(fp_log_file_freq_1,"%d.%.9d\t",value->tv_sec,value->tv_nsec);
     }
     if(socket_num==1){
         //below when just logging
         if(prog_options.logging==1)
-            fprintf(fp_log_file2,"%d.%d\n",value->tv_sec,value->tv_nsec); //newline, replace \n with \t to get everything separated with tabs
+            fprintf(fp_log_file_freq_2,"%d.%.9d\n",value->tv_sec,value->tv_nsec); //newline, replace \n with \t to get everything separated with tabs
 
         //below when appending
         if(prog_options.logging==2)
-             fprintf(fp_log_file2,"%d.%d\t",value->tv_sec,value->tv_nsec);
+             fprintf(fp_log_file_freq_2,"%d.%.9d\t",value->tv_sec,value->tv_nsec);
     }
 }
+
+
+
+
+
+
+void logCpuCstates_single(float value)
+{
+    //below when just logging
+    if(prog_options.logging != 0) {
+        fprintf(fp_log_file_Cstates,"%f",value); //newline, replace \n with \t to get everything separated with tabs
+    }
+}
+
+void logCpuCstates_single_c(char* value)
+{
+    //below when just logging
+    if(prog_options.logging != 0) {
+        fprintf(fp_log_file_Cstates,"%s",value); //newline, replace \n with \t to get everything separated with tabs
+    }
+}
+
+void logCpuCstates_single_d(int value)
+{
+    //below when just logging
+    if(prog_options.logging != 0) {
+        fprintf(fp_log_file_Cstates,"%d",value); //newline, replace \n with \t to get everything separated with tabs
+    }
+}
+
+// fix for issue 48, suggested by Hakan
+void logCpuCstates_single_ts(struct timespec  *value) //HW use timespec to avoid floating point overflow
+{
+    //below when just logging
+    if(prog_options.logging != 0) {
+        fprintf(fp_log_file_Cstates,"%d.%.9d",value->tv_sec,value->tv_nsec); //newline, replace \n with \t to get everything separated with tabs
+    }
+}
+
+void logCpuCstates_dual(float value,int socket_num)
+{
+    if(socket_num==0){
+        //below when just logging
+        if(prog_options.logging != 0)
+            fprintf(fp_log_file_Cstates_1,"%f",value); //newline, replace \n with \t to get everything separated with tabs
+    }
+    if(socket_num==1){
+        //below when just logging
+        if(prog_options.logging != 0)
+            fprintf(fp_log_file_Cstates_2,"%f",value); //newline, replace \n with \t to get everything separated with tabs
+    }
+}
+
+void logCpuCstates_dual_c(char* value,int socket_num)
+{
+    if(socket_num==0){
+        //below when just logging
+        if(prog_options.logging != 0)
+            fprintf(fp_log_file_Cstates_1,"%s",value); //newline, replace \n with \t to get everything separated with tabs
+    }
+    if(socket_num==1){
+        //below when just logging
+        if(prog_options.logging != 0)
+            fprintf(fp_log_file_Cstates_2,"%s",value); //newline, replace \n with \t to get everything separated with tabs
+    }
+}
+
+void logCpuCstates_dual_d(int value,int socket_num)
+{
+    if(socket_num==0){
+        //below when just logging
+        if(prog_options.logging != 0)
+            fprintf(fp_log_file_Cstates_1,"%d",value); //newline, replace \n with \t to get everything separated with tabs
+    }
+    if(socket_num==1){
+        //below when just logging
+        if(prog_options.logging != 0)
+            fprintf(fp_log_file_Cstates_2,"%d",value); //newline, replace \n with \t to get everything separated with tabs
+    }
+}
+
+void logCpuCstates_dual_ts(struct timespec  *value, int socket_num) //HW use timespec to avoid floating point overflow
+{
+    if(socket_num==0){
+        //below when just logging
+        if(prog_options.logging != 0)
+            fprintf(fp_log_file_Cstates_1,"%d.%.9d",value->tv_sec,value->tv_nsec); //newline, replace \n with \t to get everything separated with tabs    
+    }
+    if(socket_num==1){
+        //below when just logging
+        if(prog_options.logging != 0)
+            fprintf(fp_log_file_Cstates_2,"%d.%.9d",value->tv_sec,value->tv_nsec); //newline, replace \n with \t to get everything separated with tabs
+    }
+}
+
+
+
 
 void atexit_runsttysane()
 {
@@ -248,7 +397,7 @@ int main (int argc, char **argv)
 {
     atexit(atexit_runsttysane);
 
-	char log_file_name[MAX_FILENAME_LENGTH], log_file_name2[MAX_FILENAME_LENGTH+3];
+    char log_file_name[MAX_FILENAME_LENGTH], log_file_name2[MAX_FILENAME_LENGTH+3];
     prog_options.logging=0; //0=no logging, 1=logging, 2=appending
 
     struct cpu_heirarchy_info chi;
@@ -267,8 +416,8 @@ int main (int argc, char **argv)
         {"socket0", required_argument,0 ,'z'},
         {"socket1", required_argument,0 ,'y'},
         {"logfile", required_argument,0,'l'},
-		{"help", no_argument, 0, 'h'},
-		{"nogui", no_argument, 0, 'n'}
+        {"help", no_argument, 0, 'h'},
+        {"nogui", no_argument, 0, 'n'}
     };
     
     prog_options.logging = 0;
@@ -304,48 +453,50 @@ int main (int argc, char **argv)
                 }
                 break;
             case 'l':
-				strncpy(log_file_name, optarg, MAX_FILENAME_LENGTH-3);
-				strcpy(log_file_name2, log_file_name);
-				strcat(log_file_name2, "_%d");
-				CPU_FREQUENCY_LOGGING_FILE_single = log_file_name;					
-				CPU_FREQUENCY_LOGGING_FILE_dual = log_file_name2;
-				printf("Logging to %s for single sockets, %s for dual sockets(0,1 for multiple sockets)\n", CPU_FREQUENCY_LOGGING_FILE_single, CPU_FREQUENCY_LOGGING_FILE_dual);
-				break;
-			case 'n':
-				use_ncurses = false;
-				printf("Not Spawning the GUI\n");
-				break;
-			case 'h':
-				printf("\ni7z Tool Supports the following functions:\n");
-				printf("Append to a log file:  ");
-				printf("%c[%d;%d;%dm./i7z --write a ", 0x1B,1,31,40);
-				printf("%c[%dm[OR] ",0x1B,0);
-				printf("%c[%d;%d;%dm./i7z -w a\n", 0x1B,1,31,40);
-				printf("%c[%dm",0x1B,0);
+                strncpy(log_file_name, optarg, MAX_FILENAME_LENGTH-3);
+                strcpy(log_file_name2, log_file_name);
+                strcat(log_file_name2, "_%d");
+                CPU_FREQUENCY_LOGGING_FILE_single = log_file_name;
+                CPU_FREQUENCY_LOGGING_FILE_dual = log_file_name2;
+                printf("Logging frequencies to %s for single sockets, %s for dual sockets(0,1 for multiple sockets)\n", CPU_FREQUENCY_LOGGING_FILE_single, CPU_FREQUENCY_LOGGING_FILE_dual);
+                break;
 
-				printf("Replacement instead of Append:  ");
-				printf("%c[%d;%d;%dm./i7z --write l ", 0x1B,1,31,40);
-				printf("%c[%dm[OR]", 0x1B,0);
-				printf(" %c[%d;%d;%dm./i7z -w l\n", 0x1B,1,31,40);
-				printf("%c[%dm",0x1B,0);
+            case 'n':
+                use_ncurses = false;
+                printf("Not Spawning the GUI\n");
+                break;
 
-				printf("Default log file name is %s (single socket) or %s (dual socket)\n", CPU_FREQUENCY_LOGGING_FILE_single, CPU_FREQUENCY_LOGGING_FILE_dual);
-				printf("Specifying a different log file: ");
-				printf("%c[%d;%d;%dm./i7z --logfile filename ", 0x1B,1,31,40);
-				printf("%c[%dm[OR] ", 0x1B,0);
-				printf("%c[%d;%d;%dm./i7z -l filename\n", 0x1B,1,31,40);
-				printf("%c[%dm",0x1B,0);
-				printf("Specifying a particular socket to print: %c[%d;%d;%dm./i7z --socket0 X \n", 0x1B,1,31,40);
-				printf("%c[%dm",0x1B,0);
-				printf("In order to print to a second socket use: %c[%d;%d;%dm./i7z --socket1 X \n", 0x1B,1,31,40);
-				printf("%c[%dm",0x1B,0);
-				printf("To turn the ncurses GUI off use: %c[%d;%d;%dm./i7z --nogui\n", 0x1B, 1, 31, 40);
-				printf("%c[%dm",0x1B,0);
-				printf("Example: To print for two sockets and also change the log file %c[%d;%d;%dm./i7z --socket0 0 --socket1 1 -logfile /tmp/logfilei7z -w l\n", 0x1B, 1, 31, 40);
-				printf("%c[%dm",0x1B,0);
+            case 'h':
+                printf("\ni7z Tool Supports the following functions:\n");
+                printf("Append to a log file:  ");
+                printf("%c[%d;%d;%dm./i7z --write a ", 0x1B,1,31,40);
+                printf("%c[%dm[OR] ",0x1B,0);
+                printf("%c[%d;%d;%dm./i7z -w a\n", 0x1B,1,31,40);
+                printf("%c[%dm",0x1B,0);
 
-				exit(1);
-				break;
+                printf("Replacement instead of Append:  ");
+                printf("%c[%d;%d;%dm./i7z --write l ", 0x1B,1,31,40);
+                printf("%c[%dm[OR]", 0x1B,0);
+                printf(" %c[%d;%d;%dm./i7z -w l\n", 0x1B,1,31,40);
+                printf("%c[%dm",0x1B,0);
+
+                printf("Default log file name is %s (single socket) or %s (dual socket)\n", CPU_FREQUENCY_LOGGING_FILE_single, CPU_FREQUENCY_LOGGING_FILE_dual);
+                printf("Specifying a different log file: ");
+                printf("%c[%d;%d;%dm./i7z --logfile filename ", 0x1B,1,31,40);
+                printf("%c[%dm[OR] ", 0x1B,0);
+                printf("%c[%d;%d;%dm./i7z -l filename\n", 0x1B,1,31,40);
+                printf("%c[%dm",0x1B,0);
+                printf("Specifying a particular socket to print: %c[%d;%d;%dm./i7z --socket0 X \n", 0x1B,1,31,40);
+                printf("%c[%dm",0x1B,0);
+                printf("In order to print to a second socket use: %c[%d;%d;%dm./i7z --socket1 X \n", 0x1B,1,31,40);
+                printf("%c[%dm",0x1B,0);
+                printf("To turn the ncurses GUI off use: %c[%d;%d;%dm./i7z --nogui\n", 0x1B, 1, 31, 40);
+                printf("%c[%dm",0x1B,0);
+                printf("Example: To print for two sockets and also change the log file %c[%d;%d;%dm./i7z --socket0 0 --socket1 1 -logfile /tmp/logfilei7z -w l\n", 0x1B, 1, 31, 40);
+                printf("%c[%dm",0x1B,0);
+
+                exit(1);
+                break;
         }
     }
 

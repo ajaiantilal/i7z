@@ -33,7 +33,7 @@ extern double TRUE_CPU_FREQ;
 int Read_Thermal_Status_CPU(int cpu_num);
 
 extern struct program_options prog_options;
-extern FILE *fp_log_file;
+extern FILE *fp_log_file_freq;
 
 struct timespec global_ts;
 
@@ -57,8 +57,8 @@ int Single_Socket ()
 {
     //zero up the file before doing anything
     if(prog_options.logging!=0){
-        fp_log_file = fopen(CPU_FREQUENCY_LOGGING_FILE_single,"w");
-        fclose(fp_log_file);
+        fp_log_file_freq = fopen(CPU_FREQUENCY_LOGGING_FILE_single,"w");
+        fclose(fp_log_file_freq);
     }
     
 
@@ -279,11 +279,11 @@ void print_i7z_socket_single(struct cpu_socket_info socket_0, int printw_offset,
         if (TURBO_MODE == 1) {
             mvprintw (7 + printw_offset, 0, "  TURBO ENABLED on %d Cores, %s\n", numPhysicalCores, HT_ON_str);
             TRUE_CPU_FREQ = BLCK * ((double) CPU_Multiplier + 1);
-            mvprintw (8 + printw_offset, 0, "  True Frequency %0.2f MHz (%0.2f x [%d]) \n", TRUE_CPU_FREQ, BLCK, CPU_Multiplier + 1);
+            mvprintw (8 + printw_offset, 0, "  Max Frequency without considering Turbo %0.2f MHz (%0.2f x [%d]) \n", TRUE_CPU_FREQ, BLCK, CPU_Multiplier + 1);
         } else {
             mvprintw (7 + printw_offset, 0, "  TURBO DISABLED on %d Cores, %s\n", numPhysicalCores, HT_ON_str);
             TRUE_CPU_FREQ = BLCK * ((double) CPU_Multiplier);
-            mvprintw (8 + printw_offset, 0,	"  True Frequency %0.2f MHz (%0.2f x [%d]) \n", TRUE_CPU_FREQ, BLCK, CPU_Multiplier);
+            mvprintw (8 + printw_offset, 0,"  Max Frequency without considering Turbo %0.2f MHz (%0.2f x [%d]) \n", TRUE_CPU_FREQ, BLCK, CPU_Multiplier);
         }
 
         //Primarily for 32-bit users, found that after sometimes the counters loopback, so inorder
@@ -577,6 +577,8 @@ void print_i7z_socket_single(struct cpu_socket_info socket_0, int printw_offset,
         //logCpuFreq_single_d(time(&time_to_save));
         clock_gettime(CLOCK_REALTIME, &global_ts);
         logCpuFreq_single_ts( &global_ts);
+         
+        logCpuCstates_single_ts( &global_ts);
         
         for (ii = 0; ii < numCPUs; ii++) {
             assert(ii < MAX_SK_PROCESSORS);
@@ -587,12 +589,23 @@ void print_i7z_socket_single(struct cpu_socket_info socket_0, int printw_offset,
             if ( (print_core[ii]) && !isinf(_FREQ[i]) ) {
                 logCpuFreq_single(_FREQ[i]);
             }
+            logCpuCstates_single_c(" [");
+            logCpuCstates_single((float)THRESHOLD_BETWEEN_0_100(C0_time[i] * 100));  logCpuCstates_single_c(",");
+            c1_time = C1_time[i] * 100 - (C3_time[i] + C6_time[i] + C7_time[i]) * 100;
+            logCpuCstates_single((float)THRESHOLD_BETWEEN_0_100(c1_time));           logCpuCstates_single_c(",");
+            logCpuCstates_single((float)THRESHOLD_BETWEEN_0_100(C3_time[i] * 100));  logCpuCstates_single_c(",");
+            logCpuCstates_single((float)THRESHOLD_BETWEEN_0_100(C6_time[i] * 100)); 
+            if(prog_options.i7_version.sandy_bridge){
+                logCpuCstates_single_c(",");
+                logCpuCstates_single((float)THRESHOLD_BETWEEN_0_100(C7_time[i] * 100));
+            } 
+            logCpuCstates_single_c("]\t");
         }
-        
+		//        logCpuCstates_single_c("\n");
         logCloseFile_single();
         
         mvprintw (10 + printw_offset, 0,
-                  "  Current Frequency %0.2f MHz [%0.2f x %0.2f] (Max of below)\n", TRUE_CPU_FREQ, BLCK, TRUE_CPU_FREQ/BLCK);
+                  "  Real Current Frequency %0.2f MHz [%0.2f x %0.2f] (Max of below)\n", TRUE_CPU_FREQ, BLCK, TRUE_CPU_FREQ/BLCK);
 
         refresh ();
 
