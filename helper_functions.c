@@ -479,6 +479,7 @@ void Print_Information_Processor(bool* nehalem, bool* sandy_bridge)
         }
     } else {
         printf ("i7z DEBUG: Unknown processor, not exactly based on Nehalem\n");
+        printf ("If you are using an AMD processor, i highly recommend TurionPowerControl http://code.google.com/p/turionpowercontrol/\n");
         exit (1);
     }
 
