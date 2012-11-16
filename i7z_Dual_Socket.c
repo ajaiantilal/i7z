@@ -44,12 +44,16 @@ extern char* CPU_FREQUENCY_LOGGING_FILE_dual;
 
 extern bool use_ncurses;
 
+void add_slashN_or_slashT_logfile_CSTATE_dual(int);
 void print_i7z ();
+void logCpuTemp_dual_d(int,int);
+void zeroLogFiles_dual(int);
 
 int Dual_Socket ()
 {
-	//zero up the file before doing anything
+    //zero up the file before doing anything
     if(prog_options.logging!=0){
+        /*
         char str_file[100];
         snprintf(str_file,100,CPU_FREQUENCY_LOGGING_FILE_dual,0);
         fp_log_file = fopen(str_file,"w");
@@ -58,6 +62,9 @@ int Dual_Socket ()
         snprintf(str_file,100,CPU_FREQUENCY_LOGGING_FILE_dual,1);
         fp_log_file = fopen(str_file,"w");
         fclose(fp_log_file);
+        */
+        zeroLogFiles_dual(0);
+        zeroLogFiles_dual(1);
     }
         
 	//int row, col;			
@@ -581,9 +588,10 @@ void print_i7z_socket(struct cpu_socket_info socket_0, int printw_offset, int PL
         logOpenFile_dual(socket_0.socket_num);
         
         clock_gettime(CLOCK_REALTIME, &global_ts);
+        //log the times
         logCpuFreq_dual_ts(&global_ts, socket_0.socket_num);
-
-		logCpuCstates_dual_ts(&global_ts, socket_0.socket_num);
+        logCpuCstates_dual_ts(&global_ts, socket_0.socket_num);
+        logCpuTemp_dual_ts(&global_ts, socket_0.socket_num);
         
         for (ii = 0; ii < numCPUs; ii++)
         {
@@ -593,25 +601,28 @@ void print_i7z_socket(struct cpu_socket_info socket_0, int printw_offset, int PL
             {
                 TRUE_CPU_FREQ = _FREQ[i];
             }
-			if ( (print_core[ii]) && !isinf(_FREQ[i]) ) {
-	        	logCpuFreq_dual(_FREQ[i],socket_0.socket_num);
+            if ( (print_core[ii]) && !isinf(_FREQ[i]) ) {
+                logCpuFreq_dual(_FREQ[i],socket_0.socket_num);
             }
+
+            logCpuTemp_dual_d(Read_Thermal_Status_CPU(core_list[ii]), socket_0.socket_num);
 
             logCpuCstates_dual_c(" [",socket_0.socket_num);
             logCpuCstates_dual((float)THRESHOLD_BETWEEN_0_100(C0_time[i] * 100),socket_0.socket_num);  logCpuCstates_dual_c(",",socket_0.socket_num);
             //c1_time = C1_time[i] * 100 - (C3_time[i] + C6_time[i] + C7_time[i]) * 100;
-			c1_time = C1_time[i] * 100 - (C3_time[i] + C6_time[i]) * 100;
+            c1_time = C1_time[i] * 100 - (C3_time[i] + C6_time[i]) * 100;
             logCpuCstates_dual((float)THRESHOLD_BETWEEN_0_100(c1_time),socket_0.socket_num);           logCpuCstates_dual_c(",",socket_0.socket_num);
             logCpuCstates_dual((float)THRESHOLD_BETWEEN_0_100(C3_time[i] * 100),socket_0.socket_num);  logCpuCstates_dual_c(",",socket_0.socket_num);
             logCpuCstates_dual((float)THRESHOLD_BETWEEN_0_100(C6_time[i] * 100),socket_0.socket_num); 
-			if(prog_options.i7_version.sandy_bridge){
+            if(prog_options.i7_version.sandy_bridge){
                 logCpuCstates_dual_c(",",socket_0.socket_num);
                 logCpuCstates_dual((float)THRESHOLD_BETWEEN_0_100(C7_time[i] * 100),socket_0.socket_num);
             } 
-			logCpuCstates_dual_c("]\t",socket_0.socket_num);        
+            logCpuCstates_dual_c("]",socket_0.socket_num);
+            add_slashN_or_slashT_logfile_CSTATE_dual(socket_0.socket_num);
         }
 
-		logCloseFile_dual(socket_0.socket_num);
+        logCloseFile_dual(socket_0.socket_num);
 
         mvprintw (8 + printw_offset, 0,
                   "  Real Current Frequency %0.2f MHz (Max of below)\n", TRUE_CPU_FREQ);

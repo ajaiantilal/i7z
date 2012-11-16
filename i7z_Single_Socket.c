@@ -30,7 +30,6 @@ extern int socket_0_num, socket_1_num;
 extern bool E7_mp_present;
 extern int numPhysicalCores, numLogicalCores;
 extern double TRUE_CPU_FREQ;
-int Read_Thermal_Status_CPU(int cpu_num);
 
 extern struct program_options prog_options;
 extern FILE *fp_log_file_freq;
@@ -41,8 +40,12 @@ extern char* CPU_FREQUENCY_LOGGING_FILE_single;
 extern char* CPU_FREQUENCY_LOGGING_FILE_dual;
 extern bool use_ncurses;
 
+int Read_Thermal_Status_CPU(int cpu_num);
 void logCpuFreq_single_ts( struct timespec*);
-
+void logCpuTemp_single_ts( struct timespec*);
+void add_slashN_or_slashT_logfile_CSTATE_single( );
+void logCpuTemp_single_d(int);
+void zeroLogFiles_single();
 
 void print_i7z_socket_single(struct cpu_socket_info socket_0, int printw_offset, int PLATFORM_INFO_MSR,  int PLATFORM_INFO_MSR_high,  int PLATFORM_INFO_MSR_low,
                              int* online_cpus, double cpu_freq_cpuinfo,  struct timespec one_second_sleep, char TURBO_MODE,
@@ -56,11 +59,7 @@ void print_i7z_single ();
 int Single_Socket ()
 {
     //zero up the file before doing anything
-    if(prog_options.logging!=0){
-        fp_log_file_freq = fopen(CPU_FREQUENCY_LOGGING_FILE_single,"w");
-        fclose(fp_log_file_freq);
-    }
-    
+    zeroLogFiles_single();
 
     printf ("i7z DEBUG: In i7z Single_Socket()\n");
      
@@ -576,9 +575,11 @@ void print_i7z_socket_single(struct cpu_socket_info socket_0, int printw_offset,
         //time_t time_to_save;
         //logCpuFreq_single_d(time(&time_to_save));
         clock_gettime(CLOCK_REALTIME, &global_ts);
+
+        //logging the time of epoch
         logCpuFreq_single_ts( &global_ts);
-         
         logCpuCstates_single_ts( &global_ts);
+        logCpuTemp_single_ts( &global_ts);
         
         for (ii = 0; ii < numCPUs; ii++) {
             assert(ii < MAX_SK_PROCESSORS);
@@ -589,6 +590,11 @@ void print_i7z_socket_single(struct cpu_socket_info socket_0, int printw_offset,
             if ( (print_core[ii]) && !isinf(_FREQ[i]) ) {
                 logCpuFreq_single(_FREQ[i]);
             }
+            
+            //CPU temperatures
+            logCpuTemp_single_d(Read_Thermal_Status_CPU(core_list[ii]));
+            
+            //CPU Cstates 
             logCpuCstates_single_c(" [");
             logCpuCstates_single((float)THRESHOLD_BETWEEN_0_100(C0_time[i] * 100));  logCpuCstates_single_c(",");
             c1_time = C1_time[i] * 100 - (C3_time[i] + C6_time[i] + C7_time[i]) * 100;
@@ -599,9 +605,10 @@ void print_i7z_socket_single(struct cpu_socket_info socket_0, int printw_offset,
                 logCpuCstates_single_c(",");
                 logCpuCstates_single((float)THRESHOLD_BETWEEN_0_100(C7_time[i] * 100));
             } 
-            logCpuCstates_single_c("]\t");
+            logCpuCstates_single_c("]");
+            add_slashN_or_slashT_logfile_CSTATE_single();
         }
-		//        logCpuCstates_single_c("\n");
+        //        logCpuCstates_single_c("\n"); -- DO ALL newlines within the closing file
         logCloseFile_single();
         
         mvprintw (10 + printw_offset, 0,
