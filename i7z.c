@@ -734,12 +734,12 @@ int main (int argc, char **argv)
                 printf("%c[%dm[OR]", 0x1B,0);
                 printf(" %c[%d;%d;%dm./i7z -w l\n", 0x1B,1,31,40);
                 printf("%c[%dm",0x1B,0);
-                printf("(Enabling) Log the temperature: ");
+                printf("(Enabling) Log the temperature (also needs the -w l or -w a option): ");
                 printf("%c[%d;%d;%dm./i7z --logtemp ", 0x1B,1,31,40);
                 printf("%c[%dm[OR]", 0x1B,0);
                 printf(" %c[%d;%d;%dm./i7z -t\n", 0x1B,1,31,40);
                 printf("%c[%dm",0x1B,0);
-                printf("(Enabling) Log the C-states: ");
+                printf("(Enabling) Log the C-states (also needs the -w l or -w a option): ");
                 printf("%c[%d;%d;%dm./i7z --logcstate ", 0x1B,1,31,40);
                 printf("%c[%dm[OR]", 0x1B,0);
                 printf(" %c[%d;%d;%dm./i7z -c\n", 0x1B,1,31,40);
