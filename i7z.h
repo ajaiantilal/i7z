@@ -5,11 +5,14 @@
  *
  *   Under GPL v2
  *
+ *   modified for ivy bridge May 2013
+ *   Daniel McLellan <daniel.mclellan@gmail.com>
+ * 
  * ----------------------------------------------------------------------- */
 
 #include <sys/time.h>
 
-#define i7z_VERSION_INFO "svn-r77-(20-Nov-2011)"
+#define i7z_VERSION_INFO "svn-r93-(27-MAY-2013)"
 
 //structure to store the information about the processor
 #define proccpuinfo "/proc/cpuinfo"
@@ -29,13 +32,14 @@
 struct core_i7_version{
     bool nehalem;
     bool sandy_bridge;
+    bool ivy_bridge;
 };
 
 struct program_options{
     int logging; //0=no logging, 1=logging, 2=appending
     int templogging;
     int cstatelogging;
-    //always put variables before the below structure, something fishy going on and the variable is reseted
+    //always put variables before the below structure, something fishy going on and the variable is reset
     struct core_i7_version i7_version;    
 };
 
@@ -153,7 +157,7 @@ void get_siblings_list(struct cpu_heirarchy_info* chi);
 void get_package_ids(struct cpu_heirarchy_info* chi);
 void print_cpu_list(struct cpu_heirarchy_info chi);
 void construct_cpu_hierarchy(struct cpu_heirarchy_info *chi);
-void Print_Information_Processor(bool*, bool*);
+void Print_Information_Processor(bool*, bool*, bool*);
 void Test_Or_Make_MSR_DEVICE_FILES();
 
 

@@ -159,7 +159,7 @@ double estimate_MHz ()
     */
     struct timezone tz;
     struct timeval tvstart, tvstop;
-    unsigned long long int cycles[2];	/* gotta be 64 bit */
+    unsigned long long int cycles[2];		/* must be 64 bit */
     unsigned long long int microseconds;	/* total time taken */
 
     memset (&tz, 0, sizeof (tz));
@@ -170,7 +170,7 @@ double estimate_MHz ()
     gettimeofday (&tvstart, &tz);
 
     /* we don't trust that this is any specific length of time */
-    //1 sec will cause rdtsc to overlap multiple times perhaps. 100msecs is a good spot
+    /*1 sec will cause rdtsc to overlap multiple times perhaps. 100msecs is a good spot */
     usleep (10000);
 
     cycles[1] = rdtsc ();
@@ -318,7 +318,6 @@ uint64_t set_msr_value (int cpu, uint32_t reg, uint64_t data)
 void get_CPUs_info (unsigned int *num_Logical_OS,
                     unsigned int *num_Logical_process,
                     unsigned int *num_Processor_Core,
-
                     unsigned int *num_Physical_Socket);
 
 #endif
@@ -340,7 +339,7 @@ void Print_Version_Information()
 
 
 //sets whether its nehalem or sandy bridge
-void Print_Information_Processor(bool* nehalem, bool* sandy_bridge) 
+void Print_Information_Processor(bool* nehalem, bool* sandy_bridge, bool* ivy_bridge) 
 {
     struct family_info proc_info;
 
@@ -395,7 +394,7 @@ void Print_Information_Processor(bool* nehalem, bool* sandy_bridge)
     //0x2, 0xC - i7, Xeon, 32nm
     //0x2, 0x5 - i3, i5, i7 mobile processors, 32nm
     //0x2, 0xA - i7, 32nm
-
+    //0x3, 0xA - i7, 22nm
     //http://ark.intel.com/SSPECQDF.aspx
     //http://software.intel.com/en-us/articles/intel-processor-identification-with-cpuid-model-and-family-numbers/
     printf("i7z DEBUG: msr = Model Specific Register\n");
@@ -418,6 +417,8 @@ void Print_Information_Processor(bool* nehalem, bool* sandy_bridge)
             }
    	    *nehalem = true;
 	    *sandy_bridge = false;
+	    *ivy_bridge = false;
+	    
         } else if (proc_info.extended_model == 0x2) {
             switch (proc_info.model)
             {
@@ -425,52 +426,45 @@ void Print_Information_Processor(bool* nehalem, bool* sandy_bridge)
                 printf ("i7z DEBUG: Detected a Xeon MP - 45nm (7500, 6500 series)\n");
 		*nehalem = true;
   	    	*sandy_bridge = false;
-                break;
+		*ivy_bridge = false;
+		break;
             case 0xF:
                 printf ("i7z DEBUG: Detected a Xeon MP - 32nm (E7 series)\n");
 	        *nehalem = true;
   	        *sandy_bridge = false;
+		*ivy_bridge = false;
   	        E7_mp_present = true;
                 break;
             case 0xC:
 	        *nehalem = true;
   	        *sandy_bridge = false;
+		*ivy_bridge = false;
                 printf ("i7z DEBUG: Detected an i7/Xeon - 32 nm (westmere)\n");
                 break;
             case 0x5:
 	        *nehalem = true;
   	        *sandy_bridge = false;
+		*ivy_bridge = false;
 	        printf ("i7z DEBUG: Detected an i3/i5/i7 - 32nm (westmere - 1st generation core)\n");
 	        break;
             case 0xD:
 	        *nehalem = false;
 	  	*sandy_bridge = true;
-	        printf ("i7z DEBUG: Detected an i7 - 32nm (haven't seen this version around, do write to me with the model number)\n");
+		*ivy_bridge = false;
+		printf ("i7z DEBUG: Detected an i7 - 32nm (haven't seen this version around, do write to me with the model number)\n");
 	        break;
-            case 0xA:
-	        *nehalem = false;
-	  	*sandy_bridge = true;
-	        printf ("i7z DEBUG: Detected an i3/i5/i7 - 32nm (sandy bridge - 2nd generation core)\n");
-	        break;
-            default:
-                printf ("i7z DEBUG: Unknown processor, not exactly based on Nehalem\n");
-                printf("i7z DEBUG: detected a newer model of ivy bridge processor\n");
-                printf("i7z DEBUG: my coder doesn't know about it, can you send the following info to him?\n");
-                printf("i7z DEBUG: model %x, extended model %x, proc_family %x\n", proc_info.model, proc_info.extended_model, proc_info.family);
-                //exit (1);
             }
         } else if (proc_info.extended_model == 0x3) {
             switch (proc_info.model)
             {
             case 0xA:
-                printf ("i7z DEBUG: Detected an ivy bridege processor\n");
+                printf ("i7z DEBUG: Detected an i7 - 22nm (ivy bridge) \n");
 		*nehalem = false;
-  	    	*sandy_bridge = true;
+  	    	*sandy_bridge = false;
+		*ivy_bridge = true;
                 break;
             default:
                 printf("i7z DEBUG: detected a newer model of ivy bridge processor\n");
-                printf("i7z DEBUG: my coder doesn't know about it, can you send the following info to him?\n");
-                printf("i7z DEBUG: model %x, extended model %x, proc_family %x\n", proc_info.model, proc_info.extended_model, proc_info.family);
                 sleep(5);
             }
         } else {
