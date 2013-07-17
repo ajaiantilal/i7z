@@ -610,6 +610,20 @@ void modprobing_msr()
     system("modprobe msr");
 }
 
+void init_ncurses()
+{
+	initscr();
+	cbreak();
+	noecho();
+	nodelay(stdscr, TRUE);
+	start_color();             /* initialize colors */
+	use_default_colors ();
+	init_pair (1, COLOR_GREEN, -1);
+	init_pair (2, COLOR_YELLOW, -1);
+	init_pair (3, COLOR_RED, -1);
+	init_pair (4, COLOR_WHITE, -1);
+}
+
 //Info: I start from index 1 when i talk about cores on CPU
 
 #define MAX_FILENAME_LENGTH 1000
@@ -853,6 +867,7 @@ int main (int argc, char **argv)
         print_options(prog_options);
     } else {
         printf("GUI has been Turned ON\n");
+	init_ncurses();
         print_options(prog_options);
         /*
         if (prog_options.logging ==0)
