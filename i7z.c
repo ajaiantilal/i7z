@@ -574,7 +574,7 @@ void logCpuTemp_dual_d(int value,int socket_num)
         //below when just logging
         if ( (prog_options.logging != 0)  && (prog_options.templogging) ) {
             fprintf(fp_log_file_temp_2,"%d",value); //newline, replace \n with \t to get everything separated with tabs
-            add_slashN_or_slashT_logfile(fp_log_file_temp_2);        
+            add_slashN_or_slashT_logfile(fp_log_file_temp_2);
         }
     }
 }
@@ -585,14 +585,14 @@ void logCpuTemp_dual_ts(struct timespec  *value, int socket_num) //HW use timesp
         //below when just logging
         if ( (prog_options.logging != 0)  && (prog_options.templogging) ) {
             fprintf(fp_log_file_temp_1,"%d.%.9d",value->tv_sec,value->tv_nsec); //newline, replace \n with \t to get everything separated with tabs    
-            add_slashN_or_slashT_logfile(fp_log_file_temp_1);        
+            add_slashN_or_slashT_logfile(fp_log_file_temp_1);
         }
     }
     if(socket_num==1){
         //below when just logging
         if ( (prog_options.logging != 0)  && (prog_options.templogging) ) {
             fprintf(fp_log_file_temp_2,"%d.%.9d",value->tv_sec,value->tv_nsec); //newline, replace \n with \t to get everything separated with tabs
-            add_slashN_or_slashT_logfile(fp_log_file_temp_1);        
+            add_slashN_or_slashT_logfile(fp_log_file_temp_1);
         }
     }
 }
@@ -630,7 +630,7 @@ int main (int argc, char **argv)
     //char *cvalue = NULL;
     //static bool logging_val_append=false, logging_val_replace=false;
     bool presupplied_socket_info = false;
-    
+
     static struct option long_options[]=
     {
         {"write", required_argument, 0, 'w'},
@@ -646,7 +646,7 @@ int main (int argc, char **argv)
         {"logcstate", no_argument, 0, 'c'},
         {NULL, 0, 0, 0}
     };
-    
+
     prog_options.logging=0; //0=no logging, 1=logging, 2=appending
     prog_options.templogging = 0;
     prog_options.cstatelogging = 0;
@@ -840,7 +840,7 @@ int main (int argc, char **argv)
     }
     */
     ///////////////////////////////////////////////////////////
-    
+
     construct_CPU_Heirarchy_info(&chi);
     construct_sibling_list(&chi);
     print_CPU_Heirarchy(chi);
