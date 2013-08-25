@@ -36,7 +36,7 @@ struct program_options{
     int templogging;
     int cstatelogging;
     //always put variables before the below structure, something fishy going on and the variable is reseted
-    struct core_i7_version i7_version;    
+    struct core_i7_version i7_version;
 };
 
 /// Logging Functions
