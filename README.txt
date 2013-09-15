@@ -1,5 +1,8 @@
 license: My code is GPLv2, Details in COPYING
-Current Version: svn-103 (Sep/2012)
+Current Version: git-93 (May/2013)
+
+Prerequisites:
+Ivy Bridge processors seem to need phc_intel to function correctly.
 
 Compiling:
 32/64-bit linux:
@@ -15,6 +18,7 @@ Running:
 also needs support of MSR (model specific register) in kernel. Usually most kernels
 have it. Else run the MAKEDEV file. I do modprobing of msr within the C-program.
 
+
 I added in new code that shows a nice GUI.
 The Makefile for that is in GUI/ subdirectory. Just install a couple of qt packages
 and you should be all set to run it. There is a README file that lists those packages.
@@ -29,6 +33,9 @@ Installation
     
 
 Version and Bug History:
+v git-93 (27/May/2013)
+	added full (lol) support for Ivy Bridge
+
 v svn 103 (Sep/2012)
 	some fixes for segv fault when cpuid code is not inline
 	
@@ -92,3 +99,5 @@ v0.01- very simple program to examine i7 feature clocking and running with speed
 
 
 coder: Abhishek Jaiantilal (abhishek.jaiantilal@colorado.edu)
+contributor: raininja <daniel.mclellan@gmail.com>
+contributor: Richard Hull <rm_hull@yahoo.co.uk>

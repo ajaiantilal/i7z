@@ -389,6 +389,20 @@ void modprobing_msr()
     system("modprobe msr");
 }
 
+void init_ncurses()
+{
+	initscr();
+	cbreak();
+	noecho();
+	nodelay(stdscr, TRUE);
+	start_color();             /* initialize colors */
+	use_default_colors ();
+	init_pair (1, COLOR_GREEN, -1);
+	init_pair (2, COLOR_YELLOW, -1);
+	init_pair (3, COLOR_RED, -1);
+	init_pair (4, COLOR_WHITE, -1);
+}
+
 //Info: I start from index 1 when i talk about cores on CPU
 
 #define MAX_FILENAME_LENGTH 1000
@@ -502,7 +516,7 @@ int main (int argc, char **argv)
 
     Print_Version_Information();
 
-    Print_Information_Processor (&prog_options.i7_version.nehalem, &prog_options.i7_version.sandy_bridge);
+    Print_Information_Processor (&prog_options.i7_version.nehalem, &prog_options.i7_version.sandy_bridge, &prog_options.i7_version.ivy_bridge, &prog_options.i7_version.haswell);
 
 //	printf("nehalem %d, sandy brdige %d\n", prog_options.i7_version.nehalem, prog_options.i7_version.sandy_bridge);
 
@@ -552,33 +566,38 @@ int main (int argc, char **argv)
     print_socket_information(&socket_0);
     print_socket_information(&socket_1);
 
-	if (!use_ncurses){
-		printf("GUI has been Turned OFF\n");
-		if (prog_options.logging ==0)
-		{
-			printf("Logging is OFF\n");
-		} else {
-			printf("Logging is ON\n");
-		}
-	} else {
-		printf("GUI has been Turned ON\n");
-		if (prog_options.logging ==0)
-		{
-			printf("Logging is OFF\n");
-		} else {
-			printf("Logging is ON\n");
-		}
-	}
+    if (!use_ncurses){
+        printf("GUI has been Turned OFF\n");
+        //print_options(prog_options);
+    } else {
+        printf("GUI has been Turned ON\n");
+        init_ncurses();
+        //print_options(prog_options);
+        /*
+        if (prog_options.logging ==0)
+        {
+            printf("Logging is OFF\n");
+        } else {
+            printf("Logging is ON\n");
+            if (prog_options.cstatelogging) {
+                printf("Cstate logging is enabled\n");
+            }
+            if (prog_options.templogging) {
+                printf("temp logging is enabled\n");
+            }
+        }
+        */
+    }
 
     if (!presupplied_socket_info){
         if (socket_0.max_cpu>0 && socket_1.max_cpu>0) {
             //Path for Dual Socket Code
-            printf("i7z DEBUG: Dual Socket Detected\n");
+            printf("i7z DEBUG: Dual Socket Detected\n\r");
             //Dual_Socket(&prog_options);
             Dual_Socket();
         } else {
             //Path for Single Socket Code
-            printf("i7z DEBUG: Single Socket Detected\n");
+            printf("i7z DEBUG: Single Socket Detected\n\r");
             //Single_Socket(&prog_options);
             Single_Socket();
         }
