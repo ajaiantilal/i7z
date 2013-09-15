@@ -15,7 +15,7 @@
  *   This program is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU General Public License as published by
  *   the Free Software Foundation, Inc., 51 Franklin St, Fifth Floor,
- *   Boston, MA 02110-1301, USA; 
+ *   Boston, MA 02110-1301, USA;
  *   either version 2 of the License, or (at your option) any later
  *   version; incorporated herein by reference.
  *
@@ -45,7 +45,7 @@ bool E7_mp_present=false;
 #define IA32_TEMPERATURE_TARGET 0x1a2
 #define IA32_PACKAGE_THERM_STATUS 0x1b1
 
-int Get_Bits_Value(unsigned long val,int highbit, int lowbit){ 
+int Get_Bits_Value(unsigned long val,int highbit, int lowbit){
 	unsigned long data = val;
 	int bits = highbit - lowbit + 1;
 	if(bits<64){
@@ -64,7 +64,7 @@ int Read_Thermal_Status_CPU(int cpu_num){
 
         val= get_msr_value(cpu_num,IA32_TEMPERATURE_TARGET,63,0,&error_indx);
         int PROCHOT_temp = Get_Bits_Value(val,23,16);
-    
+
 	//temperature is prochot - digital readout
 	if (thermal_status)
 	  return(PROCHOT_temp - digital_readout);
@@ -340,13 +340,13 @@ void Print_Version_Information()
 
 
 //sets whether its nehalem or sandy bridge
-void Print_Information_Processor(bool* nehalem, bool* sandy_bridge) 
+void Print_Information_Processor(bool* nehalem, bool* sandy_bridge)
 {
     struct family_info proc_info;
 
     char vendor_string[13];
     memset(vendor_string,0,13);
-    
+
     get_vendor (vendor_string);
     vendor_string[12] = '\0';
 
@@ -391,7 +391,7 @@ void Print_Information_Processor(bool* nehalem, bool* sandy_bridge)
     //0x1, 0xA - i7, 45nm
     //0x1, 0xE - i7, i5, Xeon, 45nm
     //0x2, 0xE - Xeon MP, 45nm //e.g. x75xx processors
-    //0x2, 0xF - Xeon MP, 32nm //e.g. e7-48xx processors 
+    //0x2, 0xF - Xeon MP, 32nm //e.g. e7-48xx processors
     //0x2, 0xC - i7, Xeon, 32nm
     //0x2, 0x5 - i3, i5, i7 mobile processors, 32nm
     //0x2, 0xA - i7, 32nm
@@ -463,9 +463,14 @@ void Print_Information_Processor(bool* nehalem, bool* sandy_bridge)
             switch (proc_info.model)
             {
             case 0xA:
-                printf ("i7z DEBUG: Detected an ivy bridege processor\n");
+                printf ("i7z DEBUG: Detected an ivy bridge processor\n");
 		*nehalem = false;
   	    	*sandy_bridge = true;
+                break;
+            case 0xC:
+                printf ("i7z DEBUG: Detected a haswell processor\n");
+                *nehalem = false;
+                *sandy_bridge = true;
                 break;
             default:
                 printf("i7z DEBUG: detected a newer model of ivy bridge processor\n");
@@ -479,13 +484,12 @@ void Print_Information_Processor(bool* nehalem, bool* sandy_bridge)
         }
     } else {
         printf ("i7z DEBUG: Unknown processor, not exactly based on Nehalem\n");
-        printf ("If you are using an AMD processor, i highly recommend TurionPowerControl http://code.google.com/p/turionpowercontrol/\n");
         exit (1);
     }
 
 }
 
-void Test_Or_Make_MSR_DEVICE_FILES() 
+void Test_Or_Make_MSR_DEVICE_FILES()
 {
     //test if the msr file exists
     if (access ("/dev/cpu/0/msr", F_OK) == 0)
