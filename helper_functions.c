@@ -368,7 +368,7 @@ void Print_Information_Processor(bool* nehalem, bool* sandy_bridge, bool* ivy_br
         printf ("i7z DEBUG: Found Intel Processor\n");
     } else {
         printf
-        ("this was designed to be a intel proc utility. You can perhaps mod it for your machine?\n");
+        ("this was designed to be an intel proc utility. You can perhaps mod it for your machine?\n");
         exit (1);
     }
 
@@ -487,6 +487,7 @@ void Print_Information_Processor(bool* nehalem, bool* sandy_bridge, bool* ivy_br
         }
     } else {
         printf ("i7z DEBUG: Unknown processor, not exactly based on Nehalem\n");
+        printf ("If you are using an AMD processor, I highly recommend TurionPowerControl http://code.google.com/p/turionpowercontrol/\n");
         exit (1);
     }
 
@@ -505,12 +506,12 @@ void Test_Or_Make_MSR_DEVICE_FILES()
             //Do nothing.
             printf ("i7z DEBUG: You have write permissions to msr device files\n");
         } else {
-            printf ("i7z DEBUG: You DONOT have write permissions to msr device files\n");
+            printf ("i7z DEBUG: You DO NOT have write permissions to msr device files\n");
             printf ("i7z DEBUG: A solution is to run this program as root\n");
             exit (1);
         }
     } else {
-        printf ("i7z DEBUG: msr device files DONOT exist, trying out a makedev script\n");
+        printf ("i7z DEBUG: msr device files DO NOT exist, trying out a makedev script\n");
         if (geteuid () == 0)
         {
             //Try the Makedev script
@@ -528,7 +529,7 @@ void Test_Or_Make_MSR_DEVICE_FILES()
             printf ("i7z DEBUG: modprobbing for msr\n");
             system ("modprobe msr");
         } else {
-            printf ("i7z DEBUG: You DONOT have root privileges, mknod to create device entries won't work out\n");
+            printf ("i7z DEBUG: You DO NOT have root privileges, mknod to create device entries won't work out\n");
             printf ("i7z DEBUG: A solution is to run this program as root\n");
             exit (1);
         }
