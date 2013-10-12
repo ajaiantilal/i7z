@@ -267,10 +267,10 @@ void print_i7z_socket_single(struct cpu_socket_info socket_0, int printw_offset,
         numLogicalCores = core_list_size_log;
 
         //if (socket_0.socket_num == 0) {
-            mvprintw (19, 0, "C0 = Processor running without halting");
-            mvprintw (20, 0, "C1 = Processor running with halts (States >C0 are power saver)");
+            mvprintw (19, 0, "C0 = Processor running without halting ");
+            mvprintw (20, 0, "C1 = Processor running with halts (States >C0 are power saver modes with cores idling)");
             mvprintw (21, 0, "C3 = Cores running with PLL turned off and core cache turned off");
-            mvprintw (22, 0, "C6 = Everything in C3 + core state saved to last level cache");
+            mvprintw (22, 0, "C6, C7 = Everything in C3 + core state saved to last level cache, C7 is deeper than C6");
             mvprintw (23, 0, "  Above values in table are in percentage over the last 1 sec");
 //            mvprintw (24, 0, "Total Logical Cores: [%d], Total Physical Cores: [%d] \n",	numLogicalCores, numPhysicalCores);
             mvprintw (24, 0, "[core-id] refers to core-id number in /proc/cpuinfo");

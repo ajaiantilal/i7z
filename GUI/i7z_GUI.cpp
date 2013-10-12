@@ -460,8 +460,8 @@ MyWidget::MyWidget (QWidget * parent):QWidget (parent)
 
     //
     //Print_Information_Processor ();
-    bool cpuNehalem, cpuSandybridge;
-    Print_Information_Processor (&cpuNehalem, &cpuSandybridge);
+    bool cpuNehalem, cpuSandybridge, cpuIvybridge, cpuHaswell;
+    Print_Information_Processor (&cpuNehalem, &cpuSandybridge, &cpuIvybridge, &cpuHaswell);
 
     Test_Or_Make_MSR_DEVICE_FILES ();
 
