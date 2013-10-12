@@ -98,10 +98,7 @@ v0.01- very simple program to examine i7 feature clocking and running with speed
   
 
 
-<<<<<<< HEAD
-coder: Abhishek Jaiantilal (abhishek.jaiantilal@colorado.edu). And suggestions/help from multiple people.
-=======
-coder: Abhishek Jaiantilal (abhishek.jaiantilal@colorado.edu)
+coder: Abhishek Jaiantilal (abhishek.jaiantilal@colorado.edu). And suggestions/help from multiple people, let me know if i am missing your contribution.
 contributor: raininja <daniel.mclellan@gmail.com>
 contributor: Richard Hull <rm_hull@yahoo.co.uk>
->>>>>>> ed4f3bf81bdbf160b0b052571e3799db45de7779
+contributor: andareed
