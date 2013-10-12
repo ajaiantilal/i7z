@@ -41,6 +41,7 @@ extern char* CPU_FREQUENCY_LOGGING_FILE_dual;
 extern bool use_ncurses;
 
 int Read_Thermal_Status_CPU(int cpu_num);
+float Read_Voltage_CPU(int cpu_num);
 void logCpuFreq_single_ts( struct timespec*);
 void logCpuTemp_single_ts( struct timespec*);
 void add_slashN_or_slashT_logfile_CSTATE_single( );
@@ -346,9 +347,9 @@ void print_i7z_socket_single(struct cpu_socket_info socket_0, int printw_offset,
         (*kk_1)++;
         nanosleep (&one_second_sleep, NULL);
 	if(prog_options.i7_version.sandy_bridge){
-            mvprintw (11 + printw_offset, 0, "\tCore [core-id]  :Actual Freq (Mult.)\t  C0%%   Halt(C1)%%  C3 %%   C6 %%   C7 %%  Temp\n");
+            mvprintw (11 + printw_offset, 0, "\tCore [core-id]  :Actual Freq (Mult.)\t  C0%%   Halt(C1)%%  C3 %%   C6 %%   C7 %%  Temp      VCore\n");
 	}else{
-            mvprintw (11 + printw_offset, 0, "\tCore [core-id]  :Actual Freq (Mult.)\t  C0%%   Halt(C1)%%  C3 %%   C6 %%  Temp\n");
+            mvprintw (11 + printw_offset, 0, "\tCore [core-id]  :Actual Freq (Mult.)\t  C0%%   Halt(C1)%%  C3 %%   C6 %%  Temp      VCore\n");
 	}
         //estimate the CPU speed
         estimated_mhz = estimate_MHz ();
@@ -525,10 +526,11 @@ void print_i7z_socket_single(struct cpu_socket_info socket_0, int printw_offset,
                     }
 	        }
 	        if (print_core[ii])
-                    mvprintw (12 + ii + printw_offset, 0, "\tCore %d [%d]:\t  %0.2f (%.2fx)\t%4.3Lg\t%4.3Lg\t%4.3Lg\t%4.3Lg\t%4.3Lg\t%d\n",
+                    mvprintw (12 + ii + printw_offset, 0, "\tCore %d [%d]:\t  %0.2f (%.2fx)\t%4.3Lg\t%4.3Lg\t%4.3Lg\t%4.3Lg\t%4.3Lg\t%d\t%0.4f\n",
                           ii + 1, core_list[ii], _FREQ[i], _MULT[i], THRESHOLD_BETWEEN_0_100(C0_time[i] * 100),
                           THRESHOLD_BETWEEN_0_100(c1_time), THRESHOLD_BETWEEN_0_100(C3_time[i] * 100), THRESHOLD_BETWEEN_0_100(C6_time[i] * 100),THRESHOLD_BETWEEN_0_100(C7_time[i] * 100),
-			  Read_Thermal_Status_CPU(core_list[ii]));	//C0_time[i]*100+C1_time[i]*100 around 100
+			  Read_Thermal_Status_CPU(core_list[ii]),	//C0_time[i]*100+C1_time[i]*100 around 100
+                          Read_Voltage_CPU(core_list[ii]));
 	        else
                     mvprintw (12 + ii + printw_offset, 0, "\tCore %d [%d]:\t  Garbage Values\n", ii + 1, core_list[ii]);
 	    }else{
@@ -541,9 +543,10 @@ void print_i7z_socket_single(struct cpu_socket_info socket_0, int printw_offset,
                     }
 	        }
 	        if (print_core[ii])
-                    mvprintw (12 + ii + printw_offset, 0, "\tCore %d [%d]:\t  %0.2f (%.2fx)\t%4.3Lg\t%4.3Lg\t%4.3Lg\t%4.3Lg\t%d\n",
+                    mvprintw (12 + ii + printw_offset, 0, "\tCore %d [%d]:\t  %0.2f (%.2fx)\t%4.3Lg\t%4.3Lg\t%4.3Lg\t%4.3Lg\t%d\t%0.4f\n",
                           ii + 1, core_list[ii], _FREQ[i], _MULT[i], THRESHOLD_BETWEEN_0_100(C0_time[i] * 100),
-                          THRESHOLD_BETWEEN_0_100(c1_time), THRESHOLD_BETWEEN_0_100(C3_time[i] * 100), THRESHOLD_BETWEEN_0_100(C6_time[i] * 100),Read_Thermal_Status_CPU(core_list[ii]));	//C0_time[i]*100+C1_time[i]*100 around 100
+                          THRESHOLD_BETWEEN_0_100(c1_time), THRESHOLD_BETWEEN_0_100(C3_time[i] * 100), THRESHOLD_BETWEEN_0_100(C6_time[i] * 100),Read_Thermal_Status_CPU(core_list[ii]),	//C0_time[i]*100+C1_time[i]*100 around 100
+                          Read_Voltage_CPU(core_list[ii]));
 	        else
                     mvprintw (12 + ii + printw_offset, 0, "\tCore %d [%d]:\t  Garbage Values\n", ii + 1, core_list[ii]);
 	    }

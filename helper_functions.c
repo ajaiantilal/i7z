@@ -72,6 +72,14 @@ int Read_Thermal_Status_CPU(int cpu_num){
 	  return(-1);
 }
 
+#define MSR_PERF_STATUS 0x198
+
+float Read_Voltage_CPU(int cpu_num){
+	int error_indx;
+	unsigned long val = get_msr_value(cpu_num,MSR_PERF_STATUS,47,32,&error_indx);
+	return (float)val / (float)(1 << 13);
+}
+
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 
@@ -467,6 +475,11 @@ void Print_Information_Processor(bool* nehalem, bool* sandy_bridge)
 		*nehalem = false;
   	    	*sandy_bridge = true;
                 break;
+            case 0xC:
+	        *nehalem = false;
+	  	*sandy_bridge = true;
+	        printf ("i7z DEBUG: Detected an i3/i5/i7 - 22nm (haswell - 4th generation core)\n");
+	        break;
             default:
                 printf("i7z DEBUG: detected a newer model of ivy bridge processor\n");
                 printf("i7z DEBUG: my coder doesn't know about it, can you send the following info to him?\n");
