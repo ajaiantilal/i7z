@@ -3,5 +3,5 @@
 #qmake-qt4 -project
 #qmake-qt4
 qmake
-make
 make clean
+make
